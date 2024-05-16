@@ -1,4 +1,4 @@
-name: Sync Rule Tunings Per-PR to Dev Workflow
+name: Sync Rule Tunings Per-PR to Elastic Security Dev Space
 
 on:
   pull_request:

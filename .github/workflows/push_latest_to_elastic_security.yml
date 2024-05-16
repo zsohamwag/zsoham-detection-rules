@@ -1,4 +1,4 @@
-name: Push Latest Rules to Kibana Workflow
+name: Push Latest Rules to Elastic Security Space
 
 on:
   push:
