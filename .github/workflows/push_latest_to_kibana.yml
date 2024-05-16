@@ -1,9 +1,11 @@
-name: Push Latest to Kibana
+name: Push Latest Rules to Kibana Workflow
 
 on:
   push:
     branches:
       - DAC-feature
+    paths:
+      - '${{ env.CUSTOM_RULES_DIR }}/**/*.toml'
   workflow_dispatch:
     inputs:
       overwrite:
@@ -31,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python 3.12
       uses: actions/setup-python@v2
