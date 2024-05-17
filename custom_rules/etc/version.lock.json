@@ -1,9 +1,1 @@
-{
-  "e8e3af2a-11b8-4ab7-9ca1-c6db621ea89d": {
-    "min_stack_version": "8.15",
-    "rule_name": "DAC Demo Process Updated",
-    "sha256": "20cf910e39a8113d5414fae8fe123b98cc81afc3f3241bc0202b44d4361dddb7",
-    "type": "eql",
-    "version": 1
-  }
-}
+{}

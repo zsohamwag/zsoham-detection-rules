@@ -3,10 +3,10 @@ name: Manually Sync Rules from Elastic Security to GitHub
 on:
   workflow_dispatch:
     inputs:
-      sync_rules_from_elastic:
-        description: 'Sync rules from Elastic Security (true/false)'
+      pr_sync_rules_from_elastic:
+        description: 'Sync rules from Elastic Security (direct commit (false) vs PR (true))'
         required: true
-        default: 'false'
+        default: 'true'
       space:
         description: 'Specify the Kibana space to export rules from'
         required: false
@@ -34,7 +34,6 @@ jobs:
         pip install .[dev]
 
     - name: Export and Import Rules if flag is true
-      if: ${{ github.event.inputs.sync_rules_from_elastic == 'true' }}
       run: |
         python -m detection_rules kibana export-rules --space "${{ github.event.inputs.space }}" --directory ${{ env.CUSTOM_RULES_DIR }}/rules/
         python -m detection_rules import-rules-to-repo --directory ${{ env.CUSTOM_RULES_DIR }}/rules/
@@ -48,7 +47,7 @@ jobs:
         python -m detection_rules dev update-lock-versions --force
 
     - name: Create Pull Request
-      if: ${{ github.event.inputs.sync_rules_from_elastic == 'true' }}
+      if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'true' }}
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.WRITE_GITHUB_TOKEN }}
@@ -60,7 +59,7 @@ jobs:
         labels: "auto-update"
 
     - name: Commit Directly to Main (DAC-feature)
-      if: ${{ github.event.inputs.sync_rules_from_elastic == 'false' }}
+      if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'false' }}
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: "Manual dispatch sync"
