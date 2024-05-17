@@ -33,10 +33,10 @@ jobs:
         git fetch origin ${{ github.base_ref }}
         git diff --name-only ${{ github.event.before }} ${{ github.event.after }} '${{ env.CUSTOM_RULES_DIR }}/**/*.toml' | while read rule_file; do
           echo "Importing rule from file $rule_file"
-          python -m detection_rules kibana import-rules --rule-file "$rule_file" --space "dev" --overwrite
+          python -m detection_rules kibana --space "dev" import-rules --rule-file "$rule_file"  --overwrite
         done
       env:
         DR_KIBANA_URL: ${{ secrets.ELASTIC_KIBANA_URL }}
-        DR_KIBANA_USERNAME: ${{ secrets.ELASTIC_USERNAME }}
+        DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
 
