@@ -5,7 +5,7 @@ on:
     branches: [ "*" ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
     paths:
-      - '${{ env.CUSTOM_RULES_DIR }}/**/*.toml'
+      - '*.toml'
 
 jobs:
   sync-on-pr:
