@@ -30,13 +30,18 @@ jobs:
 
     - name: Import Specific Rules Modified in PR
       run: |
-        git fetch origin ${{ github.base_ref }}
-        git diff --name-only ${{ github.event.before }} ${{ github.event.after }} '**/*.toml' | while read rule_file; do
+        git fetch origin ${{ github.base_ref }} --depth=1
+        git diff --name-only ${{ github.event.before }} ${{ github.event.after }} '*.toml' | while read rule_file; do
           echo "Importing rule from file $rule_file"
-          python -m detection_rules kibana --space "dev" import-rules --rule-file "$rule_file"  --overwrite
+          if [[ -f "$rule_file" ]]; then
+            python -m detection_rules kibana import-rules --rule-file "$rule_file" --space "dev" --overwrite
+          else
+            echo "File does not exist: $rule_file"
+          fi
         done
       env:
-        DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
-        DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
+        DR_KIBANA_URL: ${{ secrets.ELASTIC_KIBANA_URL }}
+        DR_KIBANA_USERNAME: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+
 
