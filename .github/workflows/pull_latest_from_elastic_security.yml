@@ -7,6 +7,10 @@ on:
         description: 'Sync rules from Elastic Security (true/false)'
         required: true
         default: 'false'
+      space:
+        description: 'Specify the Kibana space to export rules from'
+        required: false
+        default: 'dev'
 
 jobs:
   manual-dispatch-sync:
@@ -32,9 +36,8 @@ jobs:
     - name: Export and Import Rules if flag is true
       if: ${{ github.event.inputs.sync_rules_from_elastic == 'true' }}
       run: |
-        # TODO: default to CUSTOM_RULES_DIR and remove --directory flags
-        python -m detection_rules kibana export-rules  --directory ${{ env.CUSTOM_RULES_DIR }}
-        python -m detection_rules import-rules-to-repo --directory ${{ env.CUSTOM_RULES_DIR }}
+        python -m detection_rules kibana export-rules --space "${{ github.event.inputs.space }}" --directory ${{ env.CUSTOM_RULES_DIR }}/rules/
+        python -m detection_rules import-rules-to-repo --directory ${{ env.CUSTOM_RULES_DIR }}/rules/
       env:
         KIBANA_URL: ${{ secrets.ELASTIC_KIBANA_URL }}
         KIBANA_USERNAME: ${{ secrets.ELASTIC_USERNAME }}
@@ -48,7 +51,7 @@ jobs:
       if: ${{ github.event.inputs.sync_rules_from_elastic == 'true' }}
       uses: peter-evans/create-pull-request@v6
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.WRITE_GITHUB_TOKEN }}
         commit-message: "Sync rules from Elastic Security"
         title: "Sync rules from Elastic Security"
         body: "This PR syncs rules from Elastic Security to the repository for review."
@@ -56,13 +59,15 @@ jobs:
         delete-branch: true
         labels: "auto-update"
 
-    - name: Commit Directly to Main
+    - name: Commit Directly to Main (DAC-feature)
       if: ${{ github.event.inputs.sync_rules_from_elastic == 'false' }}
-      run: |
-        git config --global user.name 'GitHub Action'
-        git config --global user.email 'action@github.com'
-        git add .
-        git commit -m "Manual dispatch sync"
-        git push
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "Manual dispatch sync"
+        branch: DAC-feature
+        file_pattern: "."
+        commit_user_name: "GitHub Action"
+        commit_user_email: "action@github.com"
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.WRITE_GITHUB_TOKEN }}
+

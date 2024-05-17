@@ -21,9 +21,9 @@ on:
         required: false
         default: 'true'
       space:
-        description: 'Kibana space to use (Dev_8.13 or Prod_8.13)'
+        description: 'Kibana space to use (dev or prod)'
         required: false
-        default: 'Prod_8.13'
+        default: 'prod'
 
 jobs:
   sync-to-production:
@@ -59,12 +59,12 @@ jobs:
           FLAGS="$FLAGS --overwrite-action-connectors"
         fi
         if [[ "${{ github.event_name }}" == "push" ]]; then
-          SPACE="Prod_8.13"  # Default to production for push events
-        elif [[ "${{ inputs.space }}" == "Dev_8.13" || "${{ inputs.space }}" == "Prod_8.13" ]]; then
+          SPACE="prod"  # Default to production for push events
+        elif [[ "${{ inputs.space }}" == "dev" || "${{ inputs.space }}" == "prod" ]]; then
           SPACE="${{ inputs.space }}"  # Use provided space if valid
         else
-          echo "::error::Invalid space provided. Defaulting to 'Dev_8.13'."
-          SPACE="Dev_8.13"
+          echo "::error::Invalid space provided. Defaulting to 'dev'."
+          SPACE="dev"
         fi
         SPACE_FLAG="--space $SPACE"
         python -m detection_rules kibana import-rules $FLAGS $SPACE_FLAG
