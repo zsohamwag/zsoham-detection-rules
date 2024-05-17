@@ -45,7 +45,7 @@ jobs:
 
     - name: Update Version Lock
       run: |
-        python -m detection_rules dev build-release --update-version-lock
+        python -m detection_rules dev update-lock-versions --force
 
     - name: Create Pull Request
       if: ${{ github.event.inputs.sync_rules_from_elastic == 'true' }}
