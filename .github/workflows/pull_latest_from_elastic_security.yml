@@ -38,7 +38,7 @@ jobs:
         python -m detection_rules kibana --space "${{ github.event.inputs.space }}" export-rules --directory ${{ env.CUSTOM_RULES_DIR }}/rules/
         python -m detection_rules import-rules-to-repo --directory ${{ env.CUSTOM_RULES_DIR }}/rules/
       env:
-        DR_KIBANA_URL: ${{ secrets.ELASTIC_KIBANA_URL }}
+        KIBANA_URL: ${{ secrets.ELASTIC_KIBANA_URL }}
         DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
 

@@ -69,6 +69,6 @@ jobs:
         SPACE_FLAG="--space $SPACE"
         python -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS
       env:
-        DR_KIBANA_URL: ${{ env.ELASTIC_KIBANA_URL }}
+        KIBANA_URL: ${{ env.ELASTIC_KIBANA_URL }}
         DR_KIBANA_USER: ${{ env.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ env.ELASTIC_PASSWORD }}
