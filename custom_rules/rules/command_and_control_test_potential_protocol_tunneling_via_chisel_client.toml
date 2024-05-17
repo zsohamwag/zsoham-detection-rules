@@ -1,11 +1,14 @@
 [metadata]
 creation_date = "2024/05/16"
+integration = ["endpoint"]
 maturity = "production"
 updated_date = "2024/05/16"
+min_stack_version = "8.3.0"
+min_stack_comments = "New fields added: required_fields, related_integrations, setup"
 
 [rule]
 actions = []
-author = ["Elastic"]
+author = ["DAC User"]
 description = "Test Rule"
 enabled = true
 exceptions_list = []
@@ -16,11 +19,10 @@ interval = "5m"
 language = "eql"
 license = "Elastic License v2"
 max_signals = 100
-name = "TEST Potential Protocol Tunneling via Chisel Client"
+name = "DAC Demo Process Updated"
 note = "Test Note"
 references = [
-    "https://blog.bitsadmin.com/living-off-the-foreign-land-windows-as-offensive-platform",
-    "https://book.hacktricks.xyz/generic-methodologies-and-resources/tunneling-and-port-forwarding",
+    "https://dac-reference.readthedocs.io/en/latest/",
 ]
 risk_score = 47
 risk_score_mapping = []
@@ -43,10 +45,6 @@ query = '''
 process where host.os.type == "linux" and process.name == "updated"
 '''
 
-
-[[rule.related_integrations]]
-package = "endpoint"
-version = "^8.2.0"
 
 [[rule.required_fields]]
 ecs = true
