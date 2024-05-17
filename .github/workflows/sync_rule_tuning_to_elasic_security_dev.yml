@@ -31,7 +31,7 @@ jobs:
     - name: Import Specific Rules Modified in PR
       run: |
         git fetch origin ${{ github.base_ref }}
-        git diff --name-only ${{ github.event.before }} ${{ github.event.after }} '${{ env.CUSTOM_RULES_DIR }}/**/*.toml' | while read rule_file; do
+        git diff --name-only ${{ github.event.before }} ${{ github.event.after }} '**/*.toml' | while read rule_file; do
           echo "Importing rule from file $rule_file"
           python -m detection_rules kibana --space "dev" import-rules --rule-file "$rule_file"  --overwrite
         done
