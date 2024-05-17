@@ -1,0 +1,62 @@
+[metadata]
+creation_date = "2024/05/16"
+maturity = "production"
+updated_date = "2024/05/16"
+
+[rule]
+actions = []
+author = []
+description = "AdFind Command Activity"
+enabled = true
+exceptions_list = []
+false_positives = []
+filters = []
+from = "now-90s"
+index = [
+    "apm-*-transaction*",
+    "auditbeat-*",
+    "endgame-*",
+    "filebeat-*",
+    "logs-*",
+    "packetbeat-*",
+    "traces-apm*",
+    "winlogbeat-*",
+    "-*elastic-cloud-logs-*",
+]
+interval = "30s"
+language = "eql"
+license = ""
+max_signals = 100
+name = "AdFind Command Activity"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "e27b9f6f-2282-4857-ba80-0c795622828f"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = []
+threat = []
+to = "now"
+type = "eql"
+
+query = '''
+process where host.os.type == "windows" and event.type == "start" and
+  (process.name : "AdFind.exe" or process.pe.original_file_name == "AdFind.exe") and
+  process.args : ("objectcategory=computer", "(objectcategory=computer)",
+                  "objectcategory=person", "(objectcategory=person)",
+                  "objectcategory=subnet", "(objectcategory=subnet)",
+                  "objectcategory=group", "(objectcategory=group)",
+                  "objectcategory=organizationalunit", "(objectcategory=organizationalunit)",
+                  "objectcategory=attributeschema", "(objectcategory=attributeschema)",
+                  "domainlist", "dcmodes", "adinfo", "dclist", "computers_pwnotreqd", "trustdmp")
+'''
+
+
+
+[rule.meta]
+from = "1m"
+kibana_siem_app_url = "https://dev-deployment-2c684a.kb.us-central1.gcp.cloud.es.io:9243/app/security"
+
