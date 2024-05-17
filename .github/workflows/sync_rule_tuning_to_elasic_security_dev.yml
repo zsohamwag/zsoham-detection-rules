@@ -5,7 +5,7 @@ on:
     branches: [ "*" ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
     paths:
-      - '*.toml'
+      - '**/*.toml'
 
 jobs:
   sync-on-pr:
