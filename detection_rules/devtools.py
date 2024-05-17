@@ -351,7 +351,7 @@ def update_lock_versions(rule_ids: Tuple[str, ...], force: bool):
         return
 
     # this command may not function as expected anymore due to previous changes eliminating the use of add_new=False
-    changed, new, _ = default_version_lock.manage_versions(rules, exclude_version_update=True, save_changes=True)
+    changed, new, _ = loaded_version_lock.manage_versions(rules, exclude_version_update=True, save_changes=True)
 
     if not changed:
         click.echo('No hashes updated')
