@@ -5,7 +5,7 @@ on:
     branches:
       - DAC-feature
     paths:
-      - '${{ env.CUSTOM_RULES_DIR }}/**/*.toml'
+      - '${{ secrets.CUSTOM_RULES_DIR }}/**/*.toml'
   workflow_dispatch:
     inputs:
       overwrite:
