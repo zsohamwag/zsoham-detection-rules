@@ -4,7 +4,6 @@
 # 2.0.
 import json
 from collections import OrderedDict
-from pathlib import Path
 from typing import List, Optional
 from typing import OrderedDict as OrderedDictType
 
@@ -31,7 +30,7 @@ __all__ = (
 )
 
 RULES_CONFIG = parse_rules_config()
-SCHEMA_DIR = Path(get_etc_path("api_schemas"))
+SCHEMA_DIR = get_etc_path("api_schemas")
 migrations = {}
 
 
@@ -56,7 +55,7 @@ def migrate(version: str):
 
 @cached
 def get_schema_file(version: Version, rule_type: str) -> dict:
-    path = Path(SCHEMA_DIR) / str(version) / f"{version}.{rule_type}.json"
+    path = SCHEMA_DIR / str(version) / f"{version}.{rule_type}.json"
 
     if not path.exists():
         raise ValueError(f"Unsupported rule type {rule_type}. Unable to downgrade to {version}")
@@ -319,7 +318,10 @@ def load_stack_schema_map() -> dict:
 
 @cached
 def get_stack_schemas(stack_version: Optional[str] = '0.0.0') -> OrderedDictType[str, dict]:
-    """Return all ECS + beats to stack versions for every stack version >= specified stack version and <= package."""
+    """
+    Return all ECS, beats, and custom stack versions for every stack version.
+    Only versions >= specified stack version and <= package are returned.
+    """
     stack_version = Version.parse(stack_version or '0.0.0', optional_minor_and_patch=True)
     current_package = Version.parse(load_current_package_version(), optional_minor_and_patch=True)
 

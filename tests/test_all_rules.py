@@ -29,7 +29,7 @@ from detection_rules.rule import (AlertSuppressionMapping, QueryRuleData, QueryV
 from detection_rules.rule_loader import FILE_PATTERN, RULES_CONFIG
 from detection_rules.rule_validators import EQLValidator, KQLValidator
 from detection_rules.schemas import definitions, get_min_supported_stack_version, get_stack_schemas
-from detection_rules.utils import INTEGRATION_RULE_DIR, PatchedTemplate, load_etc_dump
+from detection_rules.utils import INTEGRATION_RULE_DIR, PatchedTemplate, get_path, load_etc_dump, make_git
 from detection_rules.version_lock import loaded_version_lock
 from rta import get_available_tests
 
@@ -311,6 +311,7 @@ class TestRuleTags(BaseRuleTest):
             'logs-windows.sysmon_operational-*': {'all': ['Data Source: Sysmon']},
             'logs-windows.powershell*': {'all': ['Data Source: PowerShell Logs']},
             'logs-sentinel_one_cloud_funnel.*': {'all': ['Data Source: SentinelOne']},
+            'logs-fim.event-*': {'all': ['Data Source: File Integrity Monitoring']}
         }
 
         for rule in self.all_rules:
@@ -566,6 +567,7 @@ class TestRuleMetadata(BaseRuleTest):
             err_msg = f'The following rules have an updated_date older than the creation_date\n {rules_str}'
             self.fail(err_msg)
 
+    @unittest.skipIf(RULES_CONFIG.bypass_version_lock, "Skipping deprecated version lock check")
     def test_deprecated_rules(self):
         """Test that deprecated rules are properly handled."""
         versions = loaded_version_lock.version_lock
@@ -627,6 +629,19 @@ class TestRuleMetadata(BaseRuleTest):
 
             rule_str = f'{rule_id} - {entry["rule_name"]} ->'
             self.assertIn(rule_id, deprecated_rules, f'{rule_str} is logged in "deprecated_rules.json" but is missing')
+
+    def test_deprecated_rules_modified(self):
+        """Test to ensure deprecated rules are not modified."""
+
+        rules_path = get_path("rules", "_deprecated")
+
+        # Use git diff to check if the file(s) has been modified in rules/_deprecated directory
+        detection_rules_git = make_git()
+        result = detection_rules_git("diff", "--diff-filter=M", "origin/main", "--name-only", rules_path)
+
+        # If the output is not empty, then file(s) have changed in the directory
+        if result:
+            self.fail(f"Deprecated rules {result} has been modified")
 
     @unittest.skipIf(PACKAGE_STACK_VERSION < Version.parse("8.3.0"),
                      "Test only applicable to 8.3+ stacks regarding related integrations build time field.")
@@ -1078,7 +1093,7 @@ class TestRuleTiming(BaseRuleTest):
 
 class TestLicense(BaseRuleTest):
     """Test rule license."""
-
+    @unittest.skipIf(os.environ.get('CUSTOM_RULES_DIR'), 'Skipping test for custom rules.')
     def test_elastic_license_only_v2(self):
         """Test to ensure that production rules with the elastic license are only v2."""
         for rule in self.all_rules:
