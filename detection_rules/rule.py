@@ -176,7 +176,7 @@ class BaseThreatEntry:
     name: str
     reference: str
 
-    @pre_load()
+    @pre_load
     def modify_url(self, data: Dict[str, Any], **kwargs):
         """Modify the URL to support MITRE ATT&CK URLS with and without trailing forward slash."""
         if urlparse(data["reference"]).scheme:
@@ -714,8 +714,8 @@ class QueryRuleData(BaseRuleData):
         """Return the index or dataview depending on which is set. If neither returns empty list."""
         if self.index is not None:
             return self.index
-        elif self.dataview is not None:
-            return [self.dataview]
+        elif self.data_view_id is not None:
+            return [self.data_view_id]
         else:
             return []
 
@@ -810,6 +810,27 @@ class NewTermsRuleData(QueryRuleData):
 
     type: Literal["new_terms"]
     new_terms: NewTermsMapping
+
+    @pre_load
+    def preload_data(self, data: dict, **kwargs) -> dict:
+        """Preloads and formats the data to match the required schema."""
+        if "new_terms_fields" in data and "history_window_start" in data:
+            new_terms_mapping = {
+                "field": "new_terms_fields",
+                "value": data["new_terms_fields"],
+                "history_window_start": [
+                    {
+                        "field": "history_window_start",
+                        "value": data["history_window_start"]
+                    }
+                ]
+            }
+            data["new_terms"] = new_terms_mapping
+
+            # cleanup original fields after building into our toml format
+            data.pop("new_terms_fields")
+            data.pop("history_window_start")
+        return data
 
     def transform(self, obj: dict) -> dict:
         """Transforms new terms data to API format for Kibana."""
