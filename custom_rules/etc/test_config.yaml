@@ -11,3 +11,4 @@ unit_tests:
   - tests.test_all_rules.TestValidRules.test_schema_and_dupes
   - tests.test_all_rules.TestBuildTimeFields.test_build_fields_min_stack
   - tests.test_all_rules.TestRuleMetadata.test_deprecated_rules_modified
+  - tests.test_all_rules.TestValidRules.test_rule_type_changes
