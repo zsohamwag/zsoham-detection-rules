@@ -5,7 +5,12 @@ files:
   packages: etc/packages.yaml
   stack_schema_map: etc/stack-schema-map.yaml
   version_lock: etc/version.lock.json
+directories:
+  action_dir: actions
+  exception_dir: exceptions
 rule_dirs:
 - rules
 testing:
   config: etc/test_config.yaml
+bypass_version_lock: True
+normalize_kql_keywords: False
