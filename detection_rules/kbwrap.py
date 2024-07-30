@@ -96,6 +96,8 @@ def kibana_import_rules(ctx: click.Context, rules: RuleCollection, overwrite: Op
     with kibana:
         cl = GenericCollection.default()
         exception_dicts = [d.contents.to_api_format() for d in cl.items]
+        print(f"Rule Dicts:{rule_dicts}")
+        print(f"Overwrite:{exception_dicts}")
         response, successful_rule_ids, results = RuleResource.import_rules(
             rule_dicts,
             exception_dicts,
