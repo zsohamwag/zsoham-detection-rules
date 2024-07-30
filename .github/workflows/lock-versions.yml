@@ -6,7 +6,7 @@ on:
           description: 'List of branches to lock versions (ordered, comma separated)'
           required: true
           # 7.17 was intentionally skipped because it was added late and was bug fix only
-          default: '8.9,8.10,8.11,8.12,8.13,8.14'
+          default: '8.10,8.11,8.12,8.13,8.14,8.15'
 
 jobs:
   pr:
@@ -16,10 +16,9 @@ jobs:
       - name: Validate the source branch
         uses: actions/github-script@v3
         with:
-          # Revert Branch check to main, allowing for testing lock-version on other DAC-feature
           script: |
-            if ('refs/heads/DAC-feature' !== '${{github.event.ref}}') {
-              core.setFailed('Forbidden branch, expected "DAC-feature"')
+            if ('refs/heads/main' !== '${{github.event.ref}}') {
+              core.setFailed('Forbidden branch, expected "main"')
             }
 
       - name: Checkout detection-rules
