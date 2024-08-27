@@ -47,35 +47,34 @@ jobs:
         pip install .[dev]
         
     - name: Import Rules to Kibana
+      shell: pwsh
       run: |
-        FLAGS=""
+        $FLAGS = ""
 
-        if [ "$GITHUB_EVENT_NAME" == "push" ] && [ "$INPUT_OVERWRITE" == "true" ]; then
-          FLAGS+=" --overwrite"
-        fi
+        if ($env:GITHUB_EVENT_NAME -eq "push" -and $env:INPUT_OVERWRITE -eq "true") {
+            $FLAGS += " --overwrite"
+        }
 
-        if [ "$GITHUB_EVENT_NAME" == "push" ] && [ "$INPUT_OVERWRITE_EXCEPTIONS" == "true" ]; then
-          FLAGS+=" --overwrite-exceptions"
-        fi
+        if ($env:GITHUB_EVENT_NAME -eq "push" -and $env:INPUT_OVERWRITE_EXCEPTIONS -eq "true") {
+            $FLAGS += " --overwrite-exceptions"
+        }
 
-        if [ "$GITHUB_EVENT_NAME" == "push" ] && [ "$INPUT_OVERWRITE_ACTION_CONNECTORS" == "true" ]; then
-          FLAGS+=" --overwrite-action-connectors"
-        fi
+        if ($env:GITHUB_EVENT_NAME -eq "push" -and $env:INPUT_OVERWRITE_ACTION_CONNECTORS -eq "true") {
+            $FLAGS += " --overwrite-action-connectors"
+        }
 
-        SPACE="$INPUT_SPACE"
-        if [ -z "$SPACE" ]; then
-          SPACE="Default"
-        fi
+        $SPACE = $env:INPUT_SPACE
+        if (-not $SPACE) {
+            $SPACE = "Default"
+        }
 
-        SPACE_FLAG="--space $SPACE"
-
-        # Set the directory where your rule files are located
-        RULES_DIRECTORY="$CUSTOM_RULES_DIR"
+        $SPACE_FLAG = "--space $SPACE"
+        $RULES_DIRECTORY = $env:CUSTOM_RULES_DIR
 
         # Construct the command to include the directory
-        Command="python -m detection_rules kibana $SPACE_FLAG import-rules --directory $RULES_DIRECTORY $FLAGS"
-        echo "Running command: $Command"
-        $Command
+        $Command = "python -m detection_rules kibana $SPACE_FLAG import-rules --directory $RULES_DIRECTORY $FLAGS"
+        Write-Output "Running command: $Command"
+        Invoke-Expression $Command
       env:
         DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
