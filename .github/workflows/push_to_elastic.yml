@@ -47,7 +47,7 @@ jobs:
         pip install .[dev]
         
     - name: Import Rules to Kibana
-      shell: pwsh
+      shell: powershell
       run: |
         $FLAGS = ""
 
