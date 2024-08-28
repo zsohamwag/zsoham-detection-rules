@@ -1,0 +1,7 @@
+{
+"cloud_id":"nonprod-playground:YXAtc291dGhlYXN0LTEuYXdzLmZvdW5kLmlvOjQ0MyQ5ZDA0YzAxMTFlYTI0MDJmYWNkNmI4ZjUyNTA5ODM5MSQ0OTUzNTU5MDU0OGM0MjQ0YTdlMGI0YTYxYjJmNDhjZQ==",
+"es_user": "zsoham.wag",
+"es_password": "ZSoham777666555@",
+"kibana_user": "zsoham.wag",
+"kibana_password": "ZSoham777666555@"
+}
