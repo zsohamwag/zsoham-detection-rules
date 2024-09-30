@@ -211,6 +211,17 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
         loaded = yaml.safe_load(path.read_text())
     elif CUSTOM_RULES_DIR:
         path = Path(CUSTOM_RULES_DIR) / '_config.yaml'
+<<<<<<< HEAD
+=======
+        if not path.exists():
+            raise FileNotFoundError(
+                """
+                Configuration file not found.
+                Please create a configuration file. You can use the 'custom-rules setup-config' command
+                and update the 'CUSTOM_RULES_DIR' environment variable as needed.
+                """
+            )
+>>>>>>> upstream/main
         loaded = yaml.safe_load(path.read_text())
     else:
         path = Path(get_etc_path('_config.yaml'))
@@ -294,7 +305,12 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
 
         # Check if the file exists
         if not contents['auto_gen_schema_file'].exists():
+<<<<<<< HEAD
             # If the file doesn't exist, create an empty JSON file
+=======
+            # If the file doesn't exist, create the necessary directories and file
+            contents['auto_gen_schema_file'].parent.mkdir(parents=True, exist_ok=True)
+>>>>>>> upstream/main
             contents['auto_gen_schema_file'].write_text('{}')
 
     # bypass_optional_elastic_validation

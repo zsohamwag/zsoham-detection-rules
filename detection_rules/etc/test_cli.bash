@@ -19,7 +19,11 @@ mkdir tmp-export 2>/dev/null
 python -m detection_rules export-rules-from-repo --rule-id 0a97b20f-4144-49ea-be32-b540ecc445de -o tmp-export/test_rule.ndjson
 
 echo "Importing rule by ID: 0a97b20f-4144-49ea-be32-b540ecc445de"
+<<<<<<< HEAD
 python -m detection_rules import-rules-to-repo tmp-export/test_rule.ndjson --required-only
+=======
+python -m detection_rules import-rules-to-repo tmp-export/test_rule.ndjson --required-only -s tmp-export
+>>>>>>> upstream/main
 rm -rf tmp-export
 
 echo "Updating rule data schemas"
@@ -27,6 +31,9 @@ python -m detection_rules dev schemas update-rule-data
 
 echo "Validating rule: execution_github_new_event_action_for_pat.toml"
 python -m detection_rules validate-rule rules_building_block/execution_github_new_event_action_for_pat.toml
+
+echo "Linting Rule: command_and_control_common_webservices.toml"
+python -m detection_rules toml-lint -f rules/windows/command_and_control_common_webservices.toml
 
 echo "Checking licenses"
 python -m detection_rules dev license-check
