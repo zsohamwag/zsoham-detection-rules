@@ -47,17 +47,9 @@ def resolve_schema_path(path: str) -> Path:
     return path_obj if path_obj.is_absolute() else RULES_CONFIG.stack_schema_map_file.parent.joinpath(path)
 
 
-<<<<<<< HEAD
-def update_data(index: str, field: str, data: dict) -> dict:
-    """Update the schema entry with the appropriate index and field."""
-    if index not in data:
-        data[index] = {}
-    data[index][field] = "keyword"
-=======
 def update_data(index: str, field: str, data: dict, field_type: str = None) -> dict:
     """Update the schema entry with the appropriate index and field."""
     data.setdefault(index, {})[field] = field_type if field_type else "keyword"
->>>>>>> upstream/main
     return data
 
 
@@ -73,7 +65,7 @@ def update_stack_schema_map(stack_schema_map: dict, auto_gen_schema_file: str) -
                 auto_generated_id = key
                 key_found = True
                 break
-        if key_found is False:
+        if not key_found:
             if auto_generated_id is None:
                 auto_generated_id = random_uuid
             stack_schema_map[version][auto_generated_id] = str(auto_gen_schema_file)
@@ -88,22 +80,14 @@ def clean_stack_schema_map(stack_schema_map: dict, auto_generated_id: str, rando
     return stack_schema_map
 
 
-<<<<<<< HEAD
-def update_auto_generated_schema(index: str, field: str):
-=======
 def update_auto_generated_schema(index: str, field: str, field_type: str = None):
->>>>>>> upstream/main
     """Load custom schemas if present."""
     auto_gen_schema_file = str(RULES_CONFIG.auto_gen_schema_file)
     stack_schema_map_file = str(RULES_CONFIG.stack_schema_map_file)
 
     # Update autogen schema file
     data = load_dump(auto_gen_schema_file)
-<<<<<<< HEAD
-    data = update_data(index, field, data)
-=======
     data = update_data(index, field, data, field_type)
->>>>>>> upstream/main
     save_dump(data, auto_gen_schema_file)
 
     # Update the stack-schema-map.yaml file with the appropriate auto_gen_schema_file location
@@ -117,5 +101,5 @@ def update_auto_generated_schema(index: str, field: str, field_type: str = None)
     save_dump(stack_schema_map, stack_schema_map_file)
 
     RULES_CONFIG.stack_schema_map = stack_schema_map
-    # IMPORTANT must clear cache in order to reload schema
+    # IMPORTANT: must clear cache in order to reload schema
     clear_caches()
