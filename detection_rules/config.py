@@ -82,7 +82,7 @@ class ConfigFile:
 
 @dataclass
 class TestConfig:
-    """Detection rules test config file"""
+    """Detection rules test config file."""
     test_file: Optional[Path] = None
     unit_tests: Optional[UnitTest] = None
     rule_validation: Optional[RuleValidation] = None
@@ -90,11 +90,8 @@ class TestConfig:
     @classmethod
     def from_dict(cls, test_file: Optional[Path] = None, unit_tests: Optional[dict] = None,
                   rule_validation: Optional[dict] = None) -> 'TestConfig':
-        return cls(
-            test_file=test_file or None,
-            unit_tests=UnitTest(**unit_tests or {}),
-            rule_validation=RuleValidation(**rule_validation or {})
-        )
+        return cls(test_file=test_file or None, unit_tests=UnitTest(**unit_tests or {}),
+                   rule_validation=RuleValidation(**rule_validation or {}))
 
     @cached_property
     def all_tests(self):
@@ -123,8 +120,9 @@ class TestConfig:
     @staticmethod
     def format_tests(tests: List[str]) -> List[str]:
         """Format unit test names into expected format for direct calling."""
+        raw = [t.rsplit('.', maxsplit=2) for t in tests]
         formatted = []
-        for test in (t.rsplit('.', maxsplit=2) for t in tests):
+        for test in raw:
             path, clazz, method = test
             path = f'{path.replace(".", os.path.sep)}.py'
             formatted.append('::'.join([path, clazz, method]))
@@ -169,7 +167,6 @@ class TestConfig:
         # neither bypass nor test_only are defined, so no rules are skipped
         if not (bypass or test_only):
             return False
-
         # if defined in bypass or not defined in test_only, then skip
         return (bypass and rule_id in bypass) or (test_only and rule_id not in test_only)
 
@@ -238,7 +235,9 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
 
     base_dir = path.resolve().parent
 
-    # Testing configuration
+    # testing
+    # precedence to the environment variable
+    # environment variable is absolute path and config file is relative to the _config.yaml file
     test_config_ev = os.getenv('DETECTION_RULES_TEST_CONFIG', None)
     if test_config_ev:
         test_config_path = Path(test_config_ev)
@@ -248,23 +247,46 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
 
     if test_config_path:
         test_config_data = yaml.safe_load(test_config_path.read_text())
-        # Overwrite None with empty list to allow implicit exemption of all tests
-        if 'unit_tests' in test_config_data and test_config_data['unit_tests'] is not None:
-            test_config_data['unit_tests'] = {k: v or [] for k, v in test_config_data['unit_tests'].items()}
-        test_config = TestConfig.from_dict(test_file=test_config_path, **test_config_data)
+
+        # overwrite None with empty list to allow implicit exemption of all tests with `test_only` defined to None in
+        # `TestConfig` object.
+        unit_tests_data = test_config_data.get('unit_tests', {})
+        unit_tests_data['bypass'] = unit_tests_data.get('bypass', []) or []
+        unit_tests_data['test_only'] = unit_tests_data.get('test_only', []) or []
+        rule_validation_data = test_config_data.get('rule_validation', {})
+        rule_validation_data['bypass'] = rule_validation_data.get('bypass', []) or []
+        rule_validation_data['test_only'] = rule_validation_data.get('test_only', []) or []
+
+        test_config = TestConfig.from_dict(
+            test_file=test_config_path,
+            unit_tests=unit_tests_data,
+            rule_validation=rule_validation_data
+        )
     else:
         test_config = TestConfig()
 
-    # Now create the RulesConfig object
+    # parsing rules
+    deprecated_rules_file = Path(base_dir, loaded['files']['deprecated_rules'])
+    packages_file = Path(base_dir, loaded['files']['packages'])
+    stack_schema_map_file = Path(base_dir, loaded['files']['stack_schema_map'])
+    version_lock_file = Path(base_dir, loaded['files'].get('version_lock', ''))
+    rule_dirs = [Path(base_dir, rule_dir) for rule_dir in loaded['rule_dirs']]
+
+    # load data
+    deprecated_rules = load_dump(deprecated_rules_file)
+    packages = load_dump(packages_file)
+    stack_schema_map = load_dump(stack_schema_map_file)
+    version_lock = load_dump(version_lock_file) if version_lock_file.exists() else {}
+
     return RulesConfig(
-        deprecated_rules_file=base_dir / loaded['files']['deprecated_rules'],
-        deprecated_rules=load_dump(base_dir / loaded['files']['deprecated_rules']),
-        packages_file=base_dir / loaded['files']['packages'],
-        packages=load_dump(base_dir / loaded['files']['packages']),
-        rule_dirs=[base_dir / d for d in loaded['rule_dirs']],
-        stack_schema_map_file=base_dir / loaded['files']['stack_schema_map'],
-        stack_schema_map=load_dump(base_dir / loaded['files']['stack_schema_map']),
+        deprecated_rules_file=deprecated_rules_file,
+        deprecated_rules=deprecated_rules,
+        packages_file=packages_file,
+        packages=packages,
+        rule_dirs=rule_dirs,
+        stack_schema_map_file=stack_schema_map_file,
+        stack_schema_map=stack_schema_map,
         test_config=test_config,
-        version_lock_file=base_dir / loaded['files'].get('version_lock', ''),
-        version_lock=load_dump(base_dir / loaded['files'].get('version_lock', '')) if loaded['files'].get('version_lock') else {},
+        version_lock_file=version_lock_file,
+        version_lock=version_lock,
     )
