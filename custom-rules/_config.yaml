@@ -1,13 +1,15 @@
 # detection-rules config file
 bbr_rules_dirs:
-  - rules_building_block
-rule_dirs:
-  - rules
+- rules_building_block
 files:
   deprecated_rules: etc/deprecated_rules.json
   packages: etc/packages.yaml
   stack_schema_map: etc/stack-schema-map.yaml
   version_lock: etc/version.lock.json
+rule_dirs:
+- rules
+testing:
+  config: etc/test_config.yaml
 normalize_kql_keywords: False
 # Set the versioning strategy.
 # 1. Set to False to use version.lock.json file
@@ -52,8 +54,7 @@ normalize_kql_keywords: False
 # Refer to each original source file for purpose and proper formatting
 #
 
-# testing:
-  config: etc/test_config.yaml
+
 
 # To turn on automatic schema generation for non-ecs fields via custom schemas use a line like the following.
 # This will generate a schema file in the specified location that will be used to add entries for each field
