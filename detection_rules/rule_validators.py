@@ -4,7 +4,6 @@
 # 2.0.
 
 """Validation logic for rules containing queries."""
-import re
 from enum import Enum
 from functools import cached_property, wraps
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -20,7 +19,6 @@ import kql
 
 from . import ecs, endgame
 from .config import CUSTOM_RULES_DIR, load_current_package_version, parse_rules_config
-from .custom_schemas import update_auto_generated_schema
 from .integrations import (get_integration_schema_data,
                            load_integrations_manifests)
 from .rule import (EQLRuleData, QueryRuleData, QueryValidator, RuleMeta,
@@ -116,20 +114,10 @@ class KQLValidator(QueryValidator):
     def unique_fields(self) -> List[str]:
         return list(set(str(f) for f in self.ast if isinstance(f, kql.ast.Field)))
 
-    def auto_add_field(self, validation_checks_error: kql.errors.KqlParseError, index_or_dataview: str) -> None:
-        """Auto add a missing field to the schema."""
-        field_name = extract_error_field(self.query, validation_checks_error)
-<<<<<<< HEAD
-        update_auto_generated_schema(index_or_dataview, field_name)
-=======
-        field_type = ecs.get_all_flattened_schema().get(field_name)
-        update_auto_generated_schema(index_or_dataview, field_name, field_type)
->>>>>>> upstream/main
-
     def to_eql(self) -> eql.ast.Expression:
         return kql.to_eql(self.query)
 
-    def validate(self, data: QueryRuleData, meta: RuleMeta, max_attempts: int = 10) -> None:
+    def validate(self, data: QueryRuleData, meta: RuleMeta) -> None:
         """Validate the query, called from the parent which contains [metadata] information."""
         if meta.query_schema_validation is False or meta.maturity == "deprecated":
             # syntax only, which is done via self.ast
@@ -138,36 +126,20 @@ class KQLValidator(QueryValidator):
         if isinstance(data, QueryRuleData) and data.language != 'lucene':
             packages_manifest = load_integrations_manifests()
             package_integrations = TOMLRuleContents.get_packaged_integrations(data, meta, packages_manifest)
-            for _ in range(max_attempts):
-                validation_checks = {"stack": None, "integrations": None}
-                # validate the query against fields within beats
-                validation_checks["stack"] = self.validate_stack_combos(data, meta)
 
-                if package_integrations:
-                    # validate the query against related integration fields
-                    validation_checks["integrations"] = self.validate_integration(data, meta, package_integrations)
+            validation_checks = {"stack": None, "integrations": None}
+            # validate the query against fields within beats
+            validation_checks["stack"] = self.validate_stack_combos(data, meta)
 
-                if (validation_checks["stack"] and not package_integrations):
-                    # if auto add, try auto adding and then call stack_combo validation again
-                    if validation_checks["stack"].error_msg == "Unknown field" and RULES_CONFIG.auto_gen_schema_file:
-                        # auto add the field and re-validate
-                        self.auto_add_field(validation_checks["stack"], data.index_or_dataview[0])
-                    else:
-                        raise validation_checks["stack"]
+            if package_integrations:
+                # validate the query against related integration fields
+                validation_checks["integrations"] = self.validate_integration(data, meta, package_integrations)
 
-                if (validation_checks["stack"] and validation_checks["integrations"]):
-                    # if auto add, try auto adding and then call stack_combo validation again
-                    if validation_checks["stack"].error_msg == "Unknown field" and RULES_CONFIG.auto_gen_schema_file:
-                        # auto add the field and re-validate
-                        self.auto_add_field(validation_checks["stack"], data.index_or_dataview[0])
-                    else:
-                        raise ValueError(f"Error in both stack and integrations checks: {validation_checks}")
+            if (validation_checks["stack"] and not package_integrations):
+                raise validation_checks["stack"]
 
-                else:
-                    break
-
-            else:
-                raise ValueError(f"Maximum validation attempts exceeded for {data.rule_id} - {data.name}")
+            if (validation_checks["stack"] and validation_checks["integrations"]):
+                raise ValueError(f"Error in both stack and integrations checks: {validation_checks}")
 
     def validate_stack_combos(self, data: QueryRuleData, meta: RuleMeta) -> Union[KQL_ERROR_TYPES, None, TypeError]:
         """Validate the query against ECS and beats schemas across stack combinations."""
@@ -330,71 +302,35 @@ class EQLValidator(QueryValidator):
     def unique_fields(self) -> List[str]:
         return list(set(str(f) for f in self.ast if isinstance(f, eql.ast.Field)))
 
-    def auto_add_field(self, validation_checks_error: eql.errors.EqlParseError, index_or_dataview: str) -> None:
-        """Auto add a missing field to the schema."""
-        field_name = extract_error_field(self.query, validation_checks_error)
-<<<<<<< HEAD
-        update_auto_generated_schema(index_or_dataview, field_name)
-=======
-        field_type = ecs.get_all_flattened_schema().get(field_name)
-        update_auto_generated_schema(index_or_dataview, field_name, field_type)
->>>>>>> upstream/main
-
-    def validate(self, data: "QueryRuleData", meta: RuleMeta, max_attempts: int = 10) -> None:
+    def validate(self, data: 'QueryRuleData', meta: RuleMeta) -> None:
         """Validate an EQL query while checking TOMLRule."""
         if meta.query_schema_validation is False or meta.maturity == "deprecated":
             # syntax only, which is done via self.ast
             return
 
-        if isinstance(data, QueryRuleData) and data.language != "lucene":
+        if isinstance(data, QueryRuleData) and data.language != 'lucene':
             packages_manifest = load_integrations_manifests()
             package_integrations = TOMLRuleContents.get_packaged_integrations(data, meta, packages_manifest)
 
-            for _ in range(max_attempts):
-                validation_checks = {"stack": None, "integrations": None}
-                # validate the query against fields within beats
-                validation_checks["stack"] = self.validate_stack_combos(data, meta)
+            validation_checks = {"stack": None, "integrations": None}
+            # validate the query against fields within beats
+            validation_checks["stack"] = self.validate_stack_combos(data, meta)
 
-                if package_integrations:
-                    # validate the query against related integration fields
-                    validation_checks["integrations"] = self.validate_integration(data, meta, package_integrations)
+            if package_integrations:
+                # validate the query against related integration fields
+                validation_checks["integrations"] = self.validate_integration(data, meta, package_integrations)
 
-                if validation_checks["stack"] and not package_integrations:
-                    # if auto add, try auto adding and then validate again
-                    if (
-                        "Field not recognized" in validation_checks["stack"].error_msg
-                        and RULES_CONFIG.auto_gen_schema_file  # noqa: W503
-                    ):
-                        # auto add the field and re-validate
-                        self.auto_add_field(validation_checks["stack"], data.index_or_dataview[0])
-                    else:
-                        raise validation_checks["stack"]
+            if validation_checks["stack"] and not package_integrations:
+                raise validation_checks["stack"]
 
-                elif validation_checks["stack"] and validation_checks["integrations"]:
-                    # if auto add, try auto adding and then validate again
-                    if (
-                        "Field not recognized" in validation_checks["stack"].error_msg
-                        and RULES_CONFIG.auto_gen_schema_file  # noqa: W503
-                    ):
-                        # auto add the field and re-validate
-                        self.auto_add_field(validation_checks["stack"], data.index_or_dataview[0])
-                    else:
-                        raise ValueError(f"Error in both stack and integrations checks: {validation_checks}")
+            if validation_checks["stack"] and validation_checks["integrations"]:
+                raise ValueError(f"Error in both stack and integrations checks: {validation_checks}")
 
-                else:
-                    break
-
-            else:
-                raise ValueError(f"Maximum validation attempts exceeded for {data.rule_id} - {data.name}")
-
-            rule_type_config_fields, rule_type_config_validation_failed = self.validate_rule_type_configurations(
-                data, meta
-            )
+            rule_type_config_fields, rule_type_config_validation_failed = \
+                self.validate_rule_type_configurations(data, meta)
             if rule_type_config_validation_failed:
-                raise ValueError(
-                    f"""Rule type config values are not ECS compliant, check these values:
-                                {rule_type_config_fields}"""
-                )
+                raise ValueError(f"""Rule type config values are not ECS compliant, check these values:
+                                 {rule_type_config_fields}""")
 
     def validate_stack_combos(self, data: QueryRuleData, meta: RuleMeta) -> Union[EQL_ERROR_TYPES, None, ValueError]:
         """Validate the query against ECS and beats schemas across stack combinations."""
@@ -614,4 +550,4 @@ def extract_error_field(source: str, exc: Union[eql.EqlParseError, kql.KqlParseE
     line = lines[exc.line + mod]
     start = exc.column
     stop = start + len(exc.caret.strip())
-    return re.sub(r'^\W+|\W+$', '', line[start:stop])
+    return line[start:stop]

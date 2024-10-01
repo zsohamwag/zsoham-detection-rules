@@ -354,8 +354,6 @@ class IntegrationSecurityDocs:
 
         rule_entries = []
         for rule in self.included_rules:
-            if rule.contents.metadata.get('maturity') == 'development':
-                continue
             title_name = name_to_title(rule.name)
             status = 'new' if rule.id in self.new_rules else 'update' if rule.id in self.updated_rules else 'deprecated'
             description = rule.contents.to_api_format()['description']
@@ -396,8 +394,6 @@ class IntegrationSecurityDocs:
         for rule in self.sorted_rules:
             if isinstance(rule, DeprecatedRule):
                 continue
-            if rule.contents.metadata.get('maturity') == 'development':
-                continue
             title_name = name_to_title(rule.name)
 
             # skip rules not built for this package
@@ -423,8 +419,6 @@ class IntegrationSecurityDocs:
         """Generate rule details for each prebuilt rule."""
         included_rules = [x.name for x in self.included_rules]
         for rule in self.sorted_rules:
-            if rule.contents.metadata.get('maturity') == 'development':
-                continue
             rule_detail = IntegrationRuleDetail(rule.id, rule.contents.to_api_format(), {}, self.base_name)
             rule_path = self.package_directory / f'{self.prebuilt_rule_base}-{name_to_title(rule.name)}.asciidoc'
             prebuilt_rule_path = self.rule_details / f'{name_to_title(rule.name)}.asciidoc'  # noqa: E501
