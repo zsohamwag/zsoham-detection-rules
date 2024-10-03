@@ -1,0 +1,157 @@
+[metadata]
+creation_date = "2024/10/03"
+maturity = "production"
+updated_date = "2024/10/03"
+
+[rule]
+actions = []
+author = []
+description = "This rule is triggered when indicators from the Threat Intel integrations have a match against observed URL requests."
+enabled = true
+exceptions_list = []
+false_positives = []
+filters = []
+from = "now-3900s"
+index = ["logs-*", "apm-*", "traces-*", "*:logs-*", "*:apm-*", "*:traces-*"]
+interval = "1h"
+language = "kuery"
+license = ""
+max_signals = 100
+name = "Threat Intel URL Indicator Match"
+note = """## Triage and Analysis
+
+### Investigating Threat Intel Indicator Matches
+
+Threat Intel indicator match rules allow matching from a local observation such as an endpoint event that records a file
+hash with an entry of a file hash stored within the Threat Intel integrations. Matches can also occur on
+an IP address, registry path, URL, or imphash.
+
+The matches will be based on the incoming last 30 days feed data so it's important to validate the data and review the results by
+investigating the associated activity to determine if it requires further investigation.
+
+If an indicator matches a local observation, the following enriched fields will be generated to identify the indicator, field, and type matched.
+
+- `threat.indicator.matched.atomic` - this identifies the atomic indicator that matched the local observation
+- `threat.indicator.matched.field` - this identifies the indicator field that matched the local observation
+- `threat.indicator.matched.type` - this identifies the indicator type that matched the local observation
+
+#### Possible investigation steps:
+- Investigation should be validated and reviewed based on the data (file hash, registry path, URL, imphash) that was matched
+and by viewing the source of that activity.
+- Consider the history of the indicator that was matched. Has it happened before? Is it happening on multiple machines?
+These kinds of questions can help understand if the activity is related to legitimate behavior.
+- Consider the user and their role within the company: is this something related to their job or work function?
+
+### False Positive Analysis
+- For any matches found, it's important to consider the initial release date of that indicator. Threat intelligence can
+be a great tool for augmenting existing security processes, while at the same time it should be understood that threat
+intelligence can represent a specific set of activity observed at a point in time. For example, an IP address
+may have hosted malware observed in a Dridex campaign months ago, but it's possible that IP has been remediated and
+no longer represents any threat.
+- Adversaries often use legitimate tools as network administrators such as `PsExec` or `AdFind`; these tools often find their
+way into indicator lists creating the potential for false positives.
+- It's possible after large and publicly written campaigns, curious employees might end up going directly to attacker infrastructure and triggering these rules.
+
+### Response and Remediation
+- If suspicious or malicious behavior is observed, take immediate action to isolate activity to prevent further
+post-compromise behavior.
+- One example of a response if a machine matched a command and control IP address would be to add an entry to a network
+device such as a firewall or proxy appliance to prevent any outbound activity from leaving that machine.
+- Another example of a response with a malicious file hash match would involve validating if the file was properly quarantined,
+reviewing current running processes for any abnormal activity, and investigating for any other follow-up actions such as persistence or lateral movement.
+"""
+references = ["https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-threatintel.html"]
+related_integrations = []
+required_fields = []
+revision = 0
+risk_score = 37
+risk_score_mapping = []
+rule_id = "1e339652-f804-4086-a563-70c8c62fea8e"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["Windows", "Network", "Continous Monitoring", "SecOps", "Monitoring", "has_guide"]
+threat = []
+threat_index = ["logs-ti_*", "*:logs-ti_*"]
+threat_indicator_path = "threat.indicator"
+threat_language = "kuery"
+threat_query = '@timestamp >= "now-30d/d" and event.dataset:ti_* and threat.indicator.url.full:*
+'
+timeline_id = "495ad7a7-316e-4544-8a0f-9c098daee76e"
+timeline_title = "Generic Threat Match Timeline"
+to = "now"
+type = "threat_match"
+version = 11
+
+query = '''
+url.full:*
+'''
+
+
+[[rule.threat_filters]]
+
+[rule.threat_filters."$state"]
+store = "appState"
+[rule.threat_filters.meta]
+disabled = false
+field = "event.dataset"
+key = "event.dataset"
+negate = false
+type = "phrase"
+[rule.threat_filters.meta.params]
+query = "ti_*"
+[rule.threat_filters.query.match_phrase]
+"event.dataset" = "ti_*"
+[[rule.threat_filters]]
+
+[rule.threat_filters."$state"]
+store = "appState"
+[rule.threat_filters.meta]
+disabled = false
+field = "event.category"
+key = "event.category"
+negate = false
+type = "phrase"
+[rule.threat_filters.meta.params]
+query = "threat"
+[rule.threat_filters.query.match_phrase]
+"event.category" = "threat"
+[[rule.threat_filters]]
+
+[rule.threat_filters."$state"]
+store = "appState"
+[rule.threat_filters.meta]
+disabled = false
+field = "event.kind"
+key = "event.kind"
+negate = false
+type = "phrase"
+[rule.threat_filters.meta.params]
+query = "enrichment"
+[rule.threat_filters.query.match_phrase]
+"event.kind" = "enrichment"
+[[rule.threat_filters]]
+
+[rule.threat_filters."$state"]
+store = "appState"
+[rule.threat_filters.meta]
+disabled = false
+field = "event.type"
+key = "event.type"
+negate = false
+type = "phrase"
+[rule.threat_filters.meta.params]
+query = "indicator"
+[rule.threat_filters.query.match_phrase]
+"event.type" = "indicator"
+[[rule.threat_mapping]]
+
+[[rule.threat_mapping.entries]]
+field = "url.full"
+type = "mapping"
+value = "threat.indicator.url.full"
+
+[rule.meta]
+from = "5m"
+kibana_siem_app_url = "https://tiamut-uat.kb.ap-southeast-1.aws.found.io/app/security"
+
