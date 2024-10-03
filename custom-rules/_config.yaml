@@ -12,7 +12,7 @@ directories:
 rule_dirs:
 - rules
 testing:
-  config: test_config.yaml
+  config: etc/test_config.yaml
 bypass_version_lock: True
 normalize_kql_keywords: False
 # Set the versioning strategy.
