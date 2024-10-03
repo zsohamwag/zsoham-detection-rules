@@ -207,7 +207,7 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
         assert path.exists(), f'rules config file does not exist: {path}'
         loaded = yaml.safe_load(path.read_text())
     elif CUSTOM_RULES_DIR:
-        path = Path(CUSTOM_RULES_DIR) / '_config.yaml'
+        path = Path(CUSTOM_RULES_DIR).joinpath('_config.yaml')
         loaded = yaml.safe_load(path.read_text())
     else:
         path = Path(get_etc_path('_config.yaml'))
