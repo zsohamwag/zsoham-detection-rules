@@ -9,7 +9,7 @@ files:
   stack_schema_map: stack-schema-map.yaml
   version_lock: version.lock.json
 normalize_kql_keywords: False
-bypass_version_lock: true
+bypass_version_lock: False
 
 # directories:
   # action_dir: actions
@@ -29,4 +29,4 @@ testing:
 # auto_gen_schema_file: "etc/auto-gen-schema.json"
 
 # To bulk disable elastic validation for optional fields, use this:
-bypass_optional_elastic_validation: True
+# bypass_optional_elastic_validation: True

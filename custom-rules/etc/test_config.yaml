@@ -1,17 +1,17 @@
 # Example of test configuration file to bypass or exclusively run certain tests
 unit_tests:
   # List of tests to bypass (will not run)
-  bypass:
-    - tests.test_gh_workflows.TestWorkflows.test_matrix_to_lock_version_defaults
-    - tests.test_schemas.TestVersionLockSchema.test_version_lock_has_nested_previous
-    - tests.test_packages.TestRegistryPackage.test_registry_package_config
-    - tests.test_all_rules.TestValidRules.test_schema_and_dupes
-    - tests.test_all_rules.TestBuildTimeFields.test_build_fields_min_stack
-    - tests.test_all_rules.TestRuleMetadata.test_deprecated_rules_modified
-    - tests.test_all_rules.TestValidRules.test_rule_type_changes
+  # bypass:
+  #   - tests.test_gh_workflows.TestWorkflows.test_matrix_to_lock_version_defaults
+  #   - tests.test_schemas.TestVersionLockSchema.test_version_lock_has_nested_previous
+  #   - tests.test_packages.TestRegistryPackage.test_registry_package_config
+  #   - tests.test_all_rules.TestValidRules.test_schema_and_dupes
+  #   - tests.test_all_rules.TestBuildTimeFields.test_build_fields_min_stack
+  #   - tests.test_all_rules.TestRuleMetadata.test_deprecated_rules_modified
+  #   - tests.test_all_rules.TestValidRules.test_rule_type_changes
 
   # You can also define test_only to run only specific tests (all others are bypassed)
   # Uncomment and modify this if you want to use test_only
-  # test_only:
-  #   - tests.test_gh_workflows.TestWorkflows.test_matrix_to_lock_version_defaults
-  #   - tests.test_all_rules.TestValidRules.test_schema_and_dupes
+  test_only:
+    - tests.test_gh_workflows.TestWorkflows.test_matrix_to_lock_version_defaults
+    - tests.test_all_rules.TestValidRules.test_schema_and_dupes
