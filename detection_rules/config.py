@@ -39,6 +39,10 @@ class RuleValidation:
     test_only: Optional[List[str]] = None
 
     def __post_init__(self):
+        print("My data________________________________________")
+        print(self.bypass)
+        print(self.test_only)
+        print("______________________________________________________________________")
         assert not (self.bypass and self.test_only), 'Cannot use both test_only and bypass'
 
 
