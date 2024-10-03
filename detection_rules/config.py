@@ -15,7 +15,7 @@ import yaml
 from eql.utils import load_dump
 
 from .misc import discover_tests
-from .utils import cached, load_etc_dump, get_etc_path, set_all_validation_bypass
+from .utils import cached, load_etc_dump, get_etc_path
 
 ROOT_DIR = Path(__file__).parent.parent
 CUSTOM_RULES_DIR = os.getenv('CUSTOM_RULES_DIR', None)
@@ -28,7 +28,6 @@ class UnitTest:
     test_only: Optional[List[str]] = None
 
     def __post_init__(self):
-        print(f"Bypass: {self.bypass}, Test Only: {self.test_only}")
         assert (self.bypass is None or self.test_only is None), \
             'Cannot set both `test_only` and `bypass` in test_config!'
 
@@ -40,7 +39,6 @@ class RuleValidation:
     test_only: Optional[List[str]] = None
 
     def __post_init__(self):
-        
         assert not (self.bypass and self.test_only), 'Cannot use both test_only and bypass'
 
 
@@ -84,7 +82,7 @@ class ConfigFile:
 
 @dataclass
 class TestConfig:
-    """Detection rules test config file."""
+    """Detection rules test config file"""
     test_file: Optional[Path] = None
     unit_tests: Optional[UnitTest] = None
     rule_validation: Optional[RuleValidation] = None
@@ -104,7 +102,7 @@ class TestConfig:
         """Get the list of test names by patterns."""
         tests = set()
         for pattern in patterns:
-            tests.update(fnmatch.filter(self.all_tests, pattern))
+            tests.update(list(fnmatch.filter(self.all_tests, pattern)))
         return sorted(tests)
 
     @staticmethod
@@ -188,13 +186,10 @@ class RulesConfig:
     version_lock: Dict[str, dict]
 
     action_dir: Optional[Path] = None
-    action_connector_dir: Optional[Path] = None
-    auto_gen_schema_file: Optional[Path] = None
     bbr_rules_dirs: Optional[List[Path]] = field(default_factory=list)
     bypass_version_lock: bool = False
     exception_dir: Optional[Path] = None
     normalize_kql_keywords: bool = True
-    bypass_optional_elastic_validation: bool = False
 
     def __post_init__(self):
         """Perform post validation on packages.yaml file."""
@@ -213,14 +208,6 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
         loaded = yaml.safe_load(path.read_text())
     elif CUSTOM_RULES_DIR:
         path = Path(CUSTOM_RULES_DIR) / '_config.yaml'
-        if not path.exists():
-            raise FileNotFoundError(
-                """
-                Configuration file not found.
-                Please create a configuration file. You can use the 'custom-rules setup-config' command
-                and update the 'CUSTOM_RULES_DIR' environment variable as needed.
-                """
-            )
         loaded = yaml.safe_load(path.read_text())
     else:
         path = Path(get_etc_path('_config.yaml'))
@@ -245,55 +232,67 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
         test_config_path = Path(test_config_ev)
     else:
         test_config_file = loaded.get('testing', {}).get('config')
-        test_config_path = base_dir.joinpath(test_config_file) if test_config_file else None
+        if test_config_file:
+            test_config_path = base_dir.joinpath(test_config_file)
+        else:
+            test_config_path = None
 
     if test_config_path:
         test_config_data = yaml.safe_load(test_config_path.read_text())
-        print(test_config_data)
 
         # overwrite None with empty list to allow implicit exemption of all tests with `test_only` defined to None in
-        # `TestConfig` object.
-        unit_tests_data = test_config_data.get('unit_tests', {})
-        unit_tests_data['bypass'] = unit_tests_data.get('bypass', []) or []
-        unit_tests_data['test_only'] = unit_tests_data.get('test_only', []) or None
-        rule_validation_data = test_config_data.get('rule_validation', {})
-        rule_validation_data['bypass'] = rule_validation_data.get('bypass', []) or []
-        rule_validation_data['test_only'] = rule_validation_data.get('test_only', []) or []
-
-        
-        test_config = TestConfig.from_dict(
-            test_file=test_config_path,
-            unit_tests=unit_tests_data,
-            rule_validation=rule_validation_data
-        )
+        # test config
+        if 'unit_tests' in test_config_data and test_config_data['unit_tests'] is not None:
+            test_config_data['unit_tests'] = {k: v or [] for k, v in test_config_data['unit_tests'].items()}
+        test_config = TestConfig.from_dict(test_file=test_config_path, **test_config_data)
     else:
-        test_config = TestConfig()
+        test_config = TestConfig.from_dict()
 
-    # parsing rules
-    deprecated_rules_file = Path(base_dir, loaded['files']['deprecated_rules'])
-    packages_file = Path(base_dir, loaded['files']['packages'])
-    stack_schema_map_file = Path(base_dir, loaded['files']['stack_schema_map'])
-    version_lock_file = Path(base_dir, loaded['files'].get('version_lock', ''))
-    rule_dirs = [Path(base_dir, rule_dir) for rule_dir in loaded['rule_dirs']]
+    # files
+    # paths are relative
+    files = {f'{k}_file': base_dir.joinpath(v) for k, v in loaded['files'].items()}
+    contents = {k: load_dump(str(base_dir.joinpath(v).resolve())) for k, v in loaded['files'].items()}
+
+    contents.update(**files)
+
+    # directories
+    # paths are relative
+    if loaded.get('directories'):
+        contents.update({k: base_dir.joinpath(v).resolve() for k, v in loaded['directories'].items()})
+
+    # rule_dirs
+    # paths are relative
+    contents['rule_dirs'] = [base_dir.joinpath(d).resolve() for d in loaded.get('rule_dirs')]
+
+    # directories
+    # paths are relative
+    if loaded.get('directories'):
+        directories = loaded.get('directories')
+        if directories.get('exception_dir'):
+            contents['exception_dir'] = base_dir.joinpath(directories.get('exception_dir')).resolve()
+        if directories.get('action_dir'):
+            contents['action_dir'] = base_dir.joinpath(directories.get('action_dir')).resolve()
+
+    # version strategy
+    contents['bypass_version_lock'] = loaded.get('bypass_version_lock', False)
+
+    # bbr_rules_dirs
+    # paths are relative
+    if loaded.get('bbr_rules_dirs'):
+        contents['bbr_rules_dirs'] = [base_dir.joinpath(d).resolve() for d in loaded.get('bbr_rules_dirs', [])]
+
+    # kql keyword normalization
+    contents['normalize_kql_keywords'] = loaded.get('normalize_kql_keywords', True)
+
+    try:
+        rules_config = RulesConfig(test_config=test_config, **contents)
+    except (ValueError, TypeError) as e:
+        raise SystemExit(f'Error parsing packages.yaml: {str(e)}')
+
+    return rules_config
 
 
-
-    # Load data
-    deprecated_rules = load_dump(str(deprecated_rules_file))  # Ensure it's a string
-    packages = load_dump(str(packages_file))
-    stack_schema_map = load_dump(str(stack_schema_map_file))
-    version_lock = load_dump(str(version_lock_file)) if version_lock_file.exists() else {}
-
-
-    return RulesConfig(
-        deprecated_rules_file=deprecated_rules_file,
-        deprecated_rules=deprecated_rules,
-        packages_file=packages_file,
-        packages=packages,
-        rule_dirs=rule_dirs,
-        stack_schema_map_file=stack_schema_map_file,
-        stack_schema_map=stack_schema_map,
-        test_config=test_config,
-        version_lock_file=version_lock_file,
-        version_lock=version_lock,
-    )
+@cached
+def load_current_package_version() -> str:
+    """Load the current package version from config file."""
+    return parse_rules_config().packages['package']['name']

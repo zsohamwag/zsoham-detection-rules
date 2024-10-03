@@ -228,11 +228,7 @@ class Package(object):
 
     @classmethod
     def from_config(cls, rule_collection: Optional[RuleCollection] = None, config: Optional[dict] = None,
-<<<<<<< HEAD
                     verbose: Optional[bool] = False) -> 'Package':
-=======
-                    verbose: Optional[bool] = False, historical: Optional[bool] = True) -> 'Package':
->>>>>>> upstream/main
         """Load a rules package given a config."""
         all_rules = rule_collection or RuleCollection.default()
         config = config or {}
@@ -416,12 +412,14 @@ class Package(object):
 
         for rule in self.rules:
             asset = rule.get_asset()
-            # if this package includes historical rules the IDs need to be changed
-            # asset['id] and the file name needs to resemble RULEID_VERSION instead of RULEID
-            asset_id = f"{asset['attributes']['rule_id']}_{asset['attributes']['version']}"
-            asset["id"] = asset_id
-            asset_path = rules_dir / f'{asset_id}.json'
-
+            if self.historical:
+                # if this package includes historical rules the IDs need to be changed
+                # asset['id] and the file name needs to resemble RULEID_VERSION instead of RULEID
+                asset_id = f"{asset['attributes']['rule_id']}_{asset['attributes']['version']}"
+                asset["id"] = asset_id
+                asset_path = rules_dir / f'{asset_id}.json'
+            else:
+                asset_path = rules_dir / f'{asset["id"]}.json'
             asset_path.write_text(json.dumps(asset, indent=4, sort_keys=True), encoding="utf-8")
 
         notice_contents = NOTICE_FILE.read_text()
@@ -504,7 +502,7 @@ class Package(object):
         rules_dir = CURRENT_RELEASE_PATH / 'fleet' / manifest_version / 'kibana' / 'security_rule'
 
         # iterates over historical rules from previous package and writes them to disk
-        for _, historical_rule_contents in historical_rules.items():
+        for historical_rule_id, historical_rule_contents in historical_rules.items():
             rule_id = historical_rule_contents["attributes"]["rule_id"]
             historical_rule_version = historical_rule_contents['attributes']['version']
 
@@ -521,7 +519,7 @@ class Package(object):
             # if the historical rule version and current rules version differ, write
             # the historical rule to disk
             if historical_rule_version != current_rule_version:
-                historical_rule_path = rules_dir / f"{rule_id}_{historical_rule_version}.json"
+                historical_rule_path = rules_dir / f"{historical_rule_id}.json"
                 with historical_rule_path.open("w", encoding="UTF-8") as file:
                     json.dump(historical_rule_contents, file)
 
