@@ -276,6 +276,10 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
     version_lock_file = Path(base_dir, loaded['files'].get('version_lock', ''))
     rule_dirs = [Path(base_dir, rule_dir) for rule_dir in loaded['rule_dirs']]
 
+
+    with open(str(version_lock_file)) as f:
+     print(f.read())  # Print or log the contents
+
     # Load data
     deprecated_rules = load_dump(str(deprecated_rules_file))  # Ensure it's a string
     packages = load_dump(str(packages_file))
