@@ -1,5 +1,3 @@
-push to prod
-
 name: Push Latest Rules to Elastic Security Space
 
 on:
