@@ -257,6 +257,11 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
         rule_validation_data['bypass'] = rule_validation_data.get('bypass', []) or []
         rule_validation_data['test_only'] = rule_validation_data.get('test_only', []) or []
 
+        #temp
+        print(test_config_path)
+        print(unit_tests_data)
+        print(rule_validation_data)
+        #-----------
         test_config = TestConfig.from_dict(
             test_file=test_config_path,
             unit_tests=unit_tests_data,
