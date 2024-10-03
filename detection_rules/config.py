@@ -276,11 +276,12 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
     version_lock_file = Path(base_dir, loaded['files'].get('version_lock', ''))
     rule_dirs = [Path(base_dir, rule_dir) for rule_dir in loaded['rule_dirs']]
 
-    # load data
-    deprecated_rules = load_dump(deprecated_rules_file)
-    packages = load_dump(packages_file)
-    stack_schema_map = load_dump(stack_schema_map_file)
-    version_lock = load_dump(version_lock_file) if version_lock_file.exists() else {}
+    # Load data
+    deprecated_rules = load_dump(str(deprecated_rules_file))  # Ensure it's a string
+    packages = load_dump(str(packages_file))
+    stack_schema_map = load_dump(str(stack_schema_map_file))
+    version_lock = load_dump(str(version_lock_file)) if version_lock_file.exists() else {}
+
 
     return RulesConfig(
         deprecated_rules_file=deprecated_rules_file,
