@@ -247,6 +247,7 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
 
     if test_config_path:
         test_config_data = yaml.safe_load(test_config_path.read_text())
+        print(test_config_data)
 
         # overwrite None with empty list to allow implicit exemption of all tests with `test_only` defined to None in
         # `TestConfig` object.
@@ -257,11 +258,7 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
         rule_validation_data['bypass'] = rule_validation_data.get('bypass', []) or []
         rule_validation_data['test_only'] = rule_validation_data.get('test_only', []) or []
 
-        #temp
-        print(test_config_path)
-        print(unit_tests_data)
-        print(rule_validation_data)
-        #-----------
+        
         test_config = TestConfig.from_dict(
             test_file=test_config_path,
             unit_tests=unit_tests_data,
