@@ -9,7 +9,7 @@ files:
   stack_schema_map: stack-schema-map.yaml
   version_lock: version.lock.json
 normalize_kql_keywords: False
-bypass_version_lock: false
+bypass_version_lock: true
 
 # directories:
   # action_dir: actions
