@@ -255,7 +255,7 @@ def parse_rules_config(path: Optional[Path] = None) -> RulesConfig:
         # `TestConfig` object.
         unit_tests_data = test_config_data.get('unit_tests', {})
         unit_tests_data['bypass'] = unit_tests_data.get('bypass', []) or []
-        unit_tests_data['test_only'] = unit_tests_data.get('test_only', []) or []
+        unit_tests_data['test_only'] = unit_tests_data.get('test_only', []) or None
         rule_validation_data = test_config_data.get('rule_validation', {})
         rule_validation_data['bypass'] = rule_validation_data.get('bypass', []) or []
         rule_validation_data['test_only'] = rule_validation_data.get('test_only', []) or []
