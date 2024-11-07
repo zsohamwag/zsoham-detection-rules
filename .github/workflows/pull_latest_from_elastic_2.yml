@@ -16,13 +16,19 @@ on:
 
 jobs:
   manual-dispatch-sync:
-    runs-on: ["self-hosted", "windows"]
+    runs-on: ["self-hosted", "windows-latest"]
     env:
       CUSTOM_RULES_DIR: nonprod_export_rules
       PYTHONUTF8: '1'
 
     steps:
-      - name: Retrieve Secrets
+
+      - name: Verify current branch
+        run: |
+          echo Current branch: $(git branch --show-current)
+        shell: pwsh
+
+      - name: Setup Retrieve Secrets from HCP Vault
         uses: hashicorp/vault-action@d1720f055e0635fd932a1d2a48f87a666a57906c # v3.0.0
         id: secrets
         with:
@@ -36,40 +42,71 @@ jobs:
             secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/KIBANA_USERNAME | KIBANA_USERNAME;
             secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/KIBANA_PASSWORD | KIBANA_PASSWORD;
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Setup Use GITHUB_TOKEN in Git commands
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "bot_nonprod-dac"
+          git config --global user.email "action@github.com"
+          git checkout -b ${{ github.ref_name }}
+        shell: pwsh
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
-      - name: Install Dependencies
+      - name: Install Dependencies on self-hosted runner
         run: |
           python -m pip install --upgrade pip
           pip cache purge
           pip install .[dev]
-        shell: cmd
+        shell: pwsh
 
       - name: Debug Environment Variables
         run: |
-          echo CUSTOM_RULES_DIR: %CUSTOM_RULES_DIR%
-          echo DR_CLOUD_ID: %CLOUD_ID%
-          echo DR_KIBANA_USER: %KIBANA_USERNAME%
-          echo DR_KIBANA_PASSWORD: %KIBANA_PASSWORD%
-        shell: cmd
+          echo CUSTOM_RULES_DIR: ${{ env.CUSTOM_RULES_DIR }}
+          echo DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
+          echo DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
+          echo DR_KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
+        shell: pwsh
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Passing GITHUB_TOKEN explicitly to checkout
+
+      - name: Change directory and list files
+        run: |
+          cd ${{ env.CUSTOM_RULES_DIR }}
+          dir
+        shell: pwsh
 
       - name: Export Rules from Elastic Security and Import Rules to TOML
         if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'true' }}
         run: |
-          python -m detection_rules kibana export-rules --directory %CUSTOM_RULES_DIR% --skip-errors
+          python -m detection_rules kibana export-rules --directory ${{ env.CUSTOM_RULES_DIR }} --skip-errors
         env:
           DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
           DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
           DR_KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
-        shell: cmd
+        shell: pwsh
 
       - name: Update Version Lock
         run: |
           python -m detection_rules dev update-lock-versions --force
-        shell: cmd
+        shell: pwsh
+
+      - name: Commit Detection Rules Directly to Main (DAC-feature)
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions"
+          git commit -m "feat: pull detection rule from elastic"
+        shell: pwsh
+
+      - name: Push detection rule to GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push "https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
+        shell: pwsh
