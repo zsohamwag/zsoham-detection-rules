@@ -1,7 +1,7 @@
 [metadata]
-creation_date = "2024/08/22"
+creation_date = "2024/10/04"
 maturity = "production"
-updated_date = "2024/08/22"
+updated_date = "2024/10/04"
 
 [rule]
 actions = []
@@ -75,6 +75,7 @@ references = [
 ]
 related_integrations = []
 required_fields = []
+revision = 0
 risk_score = 73
 risk_score_mapping = []
 rule_id = "984946ef-76ec-447a-9599-a2868fea2d70"
@@ -92,6 +93,7 @@ tags = [
 timestamp_override = "event.ingested"
 to = "now"
 type = "query"
+version = 1
 
 query = '''
 event.dataset:aws.cloudtrail and event.provider:ec2.amazonaws.com and event.action:DeleteFlowLogs and event.outcome:success

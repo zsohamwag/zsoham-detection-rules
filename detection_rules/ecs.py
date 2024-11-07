@@ -16,12 +16,8 @@ import requests
 from semver import Version
 import yaml
 
-from .config import CUSTOM_RULES_DIR, parse_rules_config
+from .config import parse_rules_config
 from .custom_schemas import get_custom_schemas
-<<<<<<< HEAD
-=======
-from .integrations import load_integrations_schemas
->>>>>>> upstream/main
 from .utils import (DateTimeEncoder, cached, get_etc_path, gzip_compress,
                     load_etc_dump, read_gzip, unzip)
 
@@ -131,12 +127,6 @@ def get_eql_schema(version=None, index_patterns=None):
             for k, v in flatten(get_index_schema(index_name)).items():
                 add_field(converted, k, convert_type(v))
 
-    # add custom schema
-    if index_patterns and CUSTOM_RULES_DIR:
-        for index_name in index_patterns:
-            for k, v in flatten(get_custom_index_schema(index_name)).items():
-                add_field(converted, k, convert_type(v))
-
     # add endpoint custom schema
     for k, v in flatten(get_endpoint_schemas()).items():
         add_field(converted, k, convert_type(v))
@@ -155,54 +145,19 @@ def flatten(schema):
 
 
 @cached
-def get_all_flattened_schema() -> dict:
-    """Load all schemas into a flattened dictionary."""
-    all_flattened_schema = {}
-    for _, schema in get_non_ecs_schema().items():
-        all_flattened_schema.update(flatten(schema))
-
-    ecs_schemas = get_schemas()
-    for version in ecs_schemas:
-        for index, info in ecs_schemas[version]["ecs_flat"].items():
-            all_flattened_schema.update({index: info["type"]})
-
-    for _, integration_schema in load_integrations_schemas().items():
-        for index, index_schema in integration_schema.items():
-            # Detect if ML integration
-            if "jobs" in index_schema:
-                ml_schemas = {k: v for k, v in index_schema.items() if k != "jobs"}
-                for _, ml_schema in ml_schemas.items():
-                    all_flattened_schema.update(flatten(ml_schema))
-            else:
-                all_flattened_schema.update(flatten(index_schema))
-
-    return all_flattened_schema
-
-
-@cached
 def get_non_ecs_schema():
     """Load non-ecs schema."""
     return load_etc_dump('non-ecs-schema.json')
 
 
 @cached
-def get_custom_index_schema(index_name: str, stack_version: str = None):
-    """Load custom schema."""
-    custom_schemas = get_custom_schemas(stack_version)
-    index_schema = custom_schemas.get(index_name, {})
-    ccs_schema = custom_schemas.get(index_name.split(":", 1)[-1], {})
-    index_schema.update(ccs_schema)
-    return index_schema
+def get_custom_index_schema(index_name: str, stack_version: str):
+    return get_custom_schemas(stack_version).get(index_name, {})
 
 
 @cached
 def get_index_schema(index_name):
-    """Load non-ecs schema."""
-    non_ecs_schema = get_non_ecs_schema()
-    index_schema = non_ecs_schema.get(index_name, {})
-    ccs_schema = non_ecs_schema.get(index_name.split(":", 1)[-1], {})
-    index_schema.update(ccs_schema)
-    return index_schema
+    return get_non_ecs_schema().get(index_name, {})
 
 
 def flatten_multi_fields(schema):
@@ -254,14 +209,8 @@ def get_kql_schema(version=None, indexes=None, beat_schema=None) -> dict:
     indexes = indexes or ()
     converted = flatten_multi_fields(get_schema(version, name='ecs_flat'))
 
-    # non-ecs schema
     for index_name in indexes:
         converted.update(**flatten(get_index_schema(index_name)))
-
-    # custom schema
-    if CUSTOM_RULES_DIR:
-        for index_name in indexes:
-            converted.update(**flatten(get_custom_index_schema(index_name)))
 
     # add endpoint custom schema
     converted.update(**flatten(get_endpoint_schemas()))

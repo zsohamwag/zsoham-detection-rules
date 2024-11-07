@@ -37,7 +37,7 @@ from .schemas import (SCHEMA_DIR, definitions, downgrade,
                       get_min_supported_stack_version, get_stack_schemas,
                       strip_non_public_fields)
 from .schemas.stack_compat import get_restricted_fields
-from .utils import PatchedTemplate, cached, convert_time_span, get_nested_value, set_nested_value
+from .utils import cached, convert_time_span, PatchedTemplate
 
 
 _META_SCHEMA_REQ_DEFAULTS = {}
@@ -612,7 +612,7 @@ class DataValidator:
                                   f"field, use the environment variable `DR_BYPASS_NOTE_VALIDATION_AND_PARSE`")
 
         # raise if setup header is in note and in setup
-        if self.setup_in_note and (self.setup and self.setup != "None"):
+        if self.setup_in_note and self.setup:
             raise ValidationError("Setup header found in both note and setup fields.")
 
 
@@ -758,6 +758,13 @@ class QueryRuleData(BaseRuleData):
         if data.get('index') and data.get('data_view_id'):
             raise ValidationError("Only one of index or data_view_id should be set.")
 
+    @validates_schema
+    def validates_query_data(self, data, **kwargs):
+        """Custom validation for query rule type and subclasses."""
+        # alert suppression is only valid for query rule type and not any of its subclasses
+        if data.get('alert_suppression') and data['type'] not in ('query', 'threshold'):
+            raise ValidationError("Alert suppression is only valid for query and threshold rule types.")
+
 
 @dataclass(frozen=True)
 class MachineLearningRuleData(BaseRuleData):
@@ -765,7 +772,6 @@ class MachineLearningRuleData(BaseRuleData):
 
     anomaly_threshold: int
     machine_learning_job_id: Union[str, List[str]]
-    alert_suppression: Optional[AlertSuppressionMapping] = field(metadata=dict(metadata=dict(min_compat="8.15")))
 
 
 @dataclass(frozen=True)
@@ -805,7 +811,6 @@ class NewTermsRuleData(QueryRuleData):
 
     type: Literal["new_terms"]
     new_terms: NewTermsMapping
-    alert_suppression: Optional[AlertSuppressionMapping] = field(metadata=dict(metadata=dict(min_compat="8.14")))
 
     @pre_load
     def preload_data(self, data: dict, **kwargs) -> dict:
@@ -844,7 +849,6 @@ class EQLRuleData(QueryRuleData):
     timestamp_field: Optional[str] = field(metadata=dict(metadata=dict(min_compat="8.0")))
     event_category_override: Optional[str] = field(metadata=dict(metadata=dict(min_compat="8.0")))
     tiebreaker_field: Optional[str] = field(metadata=dict(metadata=dict(min_compat="8.0")))
-    alert_suppression: Optional[AlertSuppressionMapping] = field(metadata=dict(metadata=dict(min_compat="8.14")))
 
     def convert_relative_delta(self, lookback: str) -> int:
         now = len("now")
@@ -901,7 +905,6 @@ class ESQLRuleData(QueryRuleData):
     type: Literal["esql"]
     language: Literal["esql"]
     query: str
-    alert_suppression: Optional[AlertSuppressionMapping] = field(metadata=dict(metadata=dict(min_compat="8.15")))
 
     @validates_schema
     def validates_esql_data(self, data, **kwargs):
@@ -936,7 +939,6 @@ class ThreatMatchRuleData(QueryRuleData):
     threat_language: Optional[definitions.FilterLanguages]
     threat_index: List[str]
     threat_indicator_path: Optional[str]
-    alert_suppression: Optional[AlertSuppressionMapping] = field(metadata=dict(metadata=dict(min_compat="8.13")))
 
     def validate_query(self, meta: RuleMeta) -> None:
         super(ThreatMatchRuleData, self).validate_query(meta)
@@ -1169,20 +1171,6 @@ class TOMLRuleContents(BaseRuleContents, MarshmallowDataclassMixin):
     def type(self) -> str:
         return self.data.type
 
-    def _add_known_nulls(self, rule_dict: dict) -> dict:
-        """Add known nulls to the rule."""
-        # Note this is primarily as a stopgap until add support for Rule Actions
-        for pair in definitions.KNOWN_NULL_ENTRIES:
-            for compound_key, sub_key in pair.items():
-                value = get_nested_value(rule_dict, compound_key)
-                if isinstance(value, list):
-                    items_to_update = [
-                        item for item in value if isinstance(item, dict) and get_nested_value(item, sub_key) is None
-                    ]
-                    for item in items_to_update:
-                        set_nested_value(item, sub_key, None)
-        return rule_dict
-
     def _post_dict_conversion(self, obj: dict) -> dict:
         """Transform the converted API in place before sending to Kibana."""
         super()._post_dict_conversion(obj)
@@ -1366,13 +1354,7 @@ class TOMLRuleContents(BaseRuleContents, MarshmallowDataclassMixin):
         cls, rule: dict, creation_date: str = TIME_NOW, updated_date: str = TIME_NOW, maturity: str = 'development'
     ) -> 'TOMLRuleContents':
         """Create a TOMLRuleContents from a kibana rule resource."""
-        integrations = [r.get("package") for r in rule.get("related_integrations")]
-        meta = {
-            "creation_date": creation_date,
-            "updated_date": updated_date,
-            "maturity": maturity,
-            "integration": integrations,
-        }
+        meta = {'creation_date': creation_date, 'updated_date': updated_date, 'maturity': maturity}
         contents = cls.from_dict({'metadata': meta, 'rule': rule, 'transforms': None}, unknown=marshmallow.EXCLUDE)
         return contents
 
@@ -1394,7 +1376,6 @@ class TOMLRuleContents(BaseRuleContents, MarshmallowDataclassMixin):
     def to_api_format(self, include_version: bool = not BYPASS_VERSION_LOCK, include_metadata: bool = False) -> dict:
         """Convert the TOML rule to the API format."""
         rule_dict = self.to_dict()
-        rule_dict = self._add_known_nulls(rule_dict)
         converted_data = rule_dict['rule']
         converted = self._post_dict_conversion(converted_data)
 
@@ -1451,14 +1432,11 @@ class TOMLRule:
                 return rule_path.relative_to(rules_dir)
         return None
 
-    def save_toml(self, strip_none_values: bool = True):
+    def save_toml(self):
         assert self.path is not None, f"Can't save rule {self.name} (self.id) without a path"
-        converted = dict(
-            metadata=self.contents.metadata.to_dict(),
-            rule=self.contents.data.to_dict(strip_none_values=strip_none_values),
-        )
+        converted = dict(metadata=self.contents.metadata.to_dict(), rule=self.contents.data.to_dict())
         if self.contents.transform:
-            converted["transform"] = self.contents.transform.to_dict()
+            converted['transform'] = self.contents.transform.to_dict()
         toml_write(converted, str(self.path.absolute()))
 
     def save_json(self, path: Path, include_version: bool = True):

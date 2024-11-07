@@ -24,16 +24,11 @@ def custom_rules():
 
 
 def create_config_content() -> str:
-    """Create the initial content for the _config.yaml file."""
+    """Create the content for the _config.yaml file."""
     # Base structure of the configuration
     config_content = {
         'rule_dirs': ['rules'],
         'bbr_rules_dirs': ['rules_building_block'],
-        'directories': {
-            'action_dir': 'actions',
-            'action_connector_dir': 'action_connectors',
-            'exception_dir': 'exceptions',
-        },
         'files': {
             'deprecated_rules': 'etc/deprecated_rules.json',
             'packages': 'etc/packages.yaml',
@@ -103,7 +98,6 @@ def setup_config(directory: Path, kibana_version: str, overwrite: bool, enable_p
     ]
     directories = [
         directory / 'actions',
-        directory / 'action_connectors',
         directory / 'exceptions',
         directory / 'rules',
         directory / 'rules_building_block',
