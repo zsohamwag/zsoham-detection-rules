@@ -1,8 +1,6 @@
 name: Manually Sync Rules from Elastic Security to GitHub
 
 on:
-  pull_request:
-    branches: ["dev-palo"]
   workflow_dispatch:
     inputs:
       pr_sync_rules_from_elastic:
@@ -16,26 +14,12 @@ on:
 
 jobs:
   manual-dispatch-sync:
-    runs-on: ["self-hosted", "windows"]
+    runs-on: self-hosted
     env:
-      CUSTOM_RULES_DIR: nonprod_export_rules
+      CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
       PYTHONUTF8: '1'
 
     steps:
-      - name: Retrieve Secrets
-        uses: hashicorp/vault-action@d1720f055e0635fd932a1d2a48f87a666a57906c # v3.0.0
-        id: secrets
-        with:
-          url: "${{ secrets.RAINBOW_VAULT_ADDR }}"
-          method: "jwt"
-          path: "jwt-github"
-          role: "github-actions-role"
-          namespace: admin
-          secrets: |
-            secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/CLOUD_ID | CLOUD_ID;
-            secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/KIBANA_USERNAME | KIBANA_USERNAME;
-            secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/KIBANA_PASSWORD | KIBANA_PASSWORD;
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -49,27 +33,48 @@ jobs:
           python -m pip install --upgrade pip
           pip cache purge
           pip install .[dev]
-        shell: cmd
 
       - name: Debug Environment Variables
         run: |
-          echo CUSTOM_RULES_DIR: %CUSTOM_RULES_DIR%
-          echo DR_CLOUD_ID: %CLOUD_ID%
-          echo DR_KIBANA_USER: %KIBANA_USERNAME%
-          echo DR_KIBANA_PASSWORD: %KIBANA_PASSWORD%
-        shell: cmd
+          echo "CUSTOM_RULES_DIR: ${{ env.CUSTOM_RULES_DIR }}"
+          echo "DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}"
+          echo "DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}"
+          echo "DR_KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}"
 
       - name: Export Rules from Elastic Security and Import Rules to TOML
         if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'true' }}
         run: |
-          python -m detection_rules kibana export-rules --directory %CUSTOM_RULES_DIR% --skip-errors
+          python -m detection_rules kibana export-rules --directory ${{ env.CUSTOM_RULES_DIR }} --skip-errors
         env:
           DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
           DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
           DR_KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
-        shell: cmd
+          
 
       - name: Update Version Lock
         run: |
           python -m detection_rules dev update-lock-versions --force
-        shell: cmd
+
+      - name: Create Pull Request
+        if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'true' }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PAT }}
+          commit-message: "Sync rules from Elastic Security"
+          title: "Sync rules from Elastic Security"
+          body: "This PR syncs rules from Elastic Security to the repository for review."
+          branch: "sync-rules-${{ github.run_id }}"
+          delete-branch: true
+          labels: "auto-update"
+
+      - name: Commit Directly to Main (DAC-feature)
+        if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'false' }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Manual dispatch sync"
+          branch: mdr-dac
+          file_pattern: "."
+          commit_user_name: "GitHub Action"
+          commit_user_email: "action@github.com"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
