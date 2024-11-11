@@ -1,0 +1,49 @@
+[metadata]
+creation_date = "2024/11/11"
+maturity = "production"
+updated_date = "2024/11/11"
+
+[rule]
+actions = []
+anomaly_threshold = 75
+author = ["Elastic"]
+description = """
+A machine learning job detected an unusually large spike in network traffic. Such a burst of traffic, if not caused by a
+surge in business activity, can be due to suspicious or malicious activity. Large-scale data exfiltration may produce a
+burst of network traffic; this could also be due to unusually large amounts of reconnaissance or enumeration traffic.
+Denial-of-service attacks or traffic floods may also produce such a surge in traffic.
+"""
+enabled = true
+exceptions_list = []
+false_positives = [
+    """
+    Business workflows that occur very occasionally, and involve an unusual surge in network traffic, can trigger this
+    alert. A new business workflow or a surge in business activity may trigger this alert. A misconfigured network
+    application or firewall may trigger this alert.
+    """,
+]
+from = "now-1800s"
+interval = "15m"
+license = "Elastic License v2"
+machine_learning_job_id = ["orange-v1-high_count_network_events"]
+max_signals = 100
+name = "Orange-ML203 Spike in Network Traffic"
+references = ["https://www.elastic.co/guide/en/security/current/prebuilt-ml-jobs.html"]
+related_integrations = []
+required_fields = []
+revision = 0
+risk_score = 21
+risk_score_mapping = []
+rule_id = "883df896-d1e2-4cad-b2d9-4466b6bb8559"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["Elastic", "Network", "Threat Detection", "ML", "Machine Learning"]
+threat = []
+to = "now"
+type = "machine_learning"
+version = 106
+
+[rule.meta]
+from = "15m"
+
