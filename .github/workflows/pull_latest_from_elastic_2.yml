@@ -16,7 +16,7 @@ on:
 
 jobs:
   manual-dispatch-sync:
-    runs-on: ["self-hosted", "windows"]
+    runs-on: ["self-hosted", "Linux"]
     env:
       CUSTOM_RULES_DIR: nonprod_export_rules
       PYTHONUTF8: '1'
