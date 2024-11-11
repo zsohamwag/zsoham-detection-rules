@@ -23,7 +23,8 @@ jobs:
 
     steps:
       - name: Verify current branch
-        run: echo "Current branch: $(git branch --show-current)"
+        run: |
+          echo "Current branch: $(git branch --show-current)"
 
       - name: Configure Git
         env:
