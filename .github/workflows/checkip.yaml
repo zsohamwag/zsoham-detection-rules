@@ -4,11 +4,12 @@ on: [push]
 
 jobs:
   check-ip:
-    runs-on: self-hosted
+    runs-on: ["self-hosted","Linux"]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
  
       - name: Display IP address
         run: |
-          curl ifconfig.me
+          curl ifconfig.me 
