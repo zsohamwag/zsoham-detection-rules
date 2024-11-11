@@ -2,7 +2,7 @@ name: Manually Sync Rules from Elastic Security to GitHub
 
 on:
   pull_request:
-    branches: ["newdac"]
+    branches: ["main"]
   workflow_dispatch:
     inputs:
       pr_sync_rules_from_elastic:
