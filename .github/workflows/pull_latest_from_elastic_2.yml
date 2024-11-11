@@ -27,20 +27,6 @@ jobs:
         run: |
           echo "Current branch: $(git branch --show-current)"
 
-      - name: Setup Retrieve Secrets from hcp vault
-        uses: hashicorp/vault-action@d1720f055e0635fd932a1d2a48f87a666a57906c # v3.0.0
-        id: secrets
-        with:
-          url: "${{ secrets.RAINBOW_VAULT_ADDR }}"
-          method: "jwt"
-          path: "jwt-github"
-          role: "github-actions-role"
-          namespace: admin
-          secrets: |
-            secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/CLOUD_ID | CLOUD_ID;
-            secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/KIBANA_USERNAME | KIBANA_USERNAME;
-            secrets/global/elastic-cloud/tyson-tech/dev/nonprod-playground/services-accounts/dac/KIBANA_PASSWORD | KIBANA_KIBANA_PASSWORD;
-
       - name: Setup Use GITHUB_TOKEN in Git commands
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,6 +35,7 @@ jobs:
           git config --global user.email "zsoham.wag@orangeworking.com"
           # Use the token to push to the repository
           git checkout -b ${{ github.ref_name }}
+          
       - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
