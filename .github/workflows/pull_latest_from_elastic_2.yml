@@ -2,7 +2,7 @@ name: Manually Sync Rules from Elastic Security to GitHub
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: ["newdac"]
   workflow_dispatch:
     inputs:
       pr_sync_rules_from_elastic:
@@ -23,8 +23,7 @@ jobs:
 
     steps:
       - name: Verify current branch
-        run: |
-          echo "Current branch: $(git branch --show-current)"
+        run: echo "Current branch: $(git branch --show-current)"
 
       - name: Configure Git
         env:
@@ -39,13 +38,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Check Python and Pip Installation
+      - name: Install Pip and Upgrade
         run: |
-          python --version
-          python -m ensurepip --upgrade  # Ensures pip is installed/upgraded
+          python -m ensurepip --upgrade || sudo apt-get install python3-pip -y
           python -m pip install --upgrade pip
 
-      - name: Install Dependencies on Runner
+      - name: Install Dependencies
         run: |
           python -m pip cache purge
           python -m pip install .[dev]
@@ -62,12 +60,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Change Directory and List Files
-        run: |
-          pwd
-          ls -l
-          cd ${{ env.CUSTOM_RULES_DIR }}
-          
       - name: Export Rules from Elastic Security and Import to TOML
         if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'true' }}
         run: |
