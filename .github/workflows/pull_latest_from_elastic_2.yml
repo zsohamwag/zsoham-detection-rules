@@ -16,7 +16,7 @@ on:
 
 jobs:
   manual-dispatch-sync:
-    runs-on: ["self-hosted", "linux", "x64", "ai"]
+    runs-on: ["self-hosted", "Linux"]
     env:
       CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
       PYTHONUTF8: '1'
