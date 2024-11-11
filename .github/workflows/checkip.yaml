@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   check-ip:
-    runs-on: ["self-hosted","Linux"]
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
