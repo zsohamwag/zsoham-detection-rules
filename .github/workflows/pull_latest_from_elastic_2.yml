@@ -78,11 +78,13 @@ jobs:
         run: |
           python -m detection_rules dev update-lock-versions --force
 
-      - name: Commit Dectection Rules Directly to Main (DAC-feature)
+      - name: Commit Detection Rules Directly to Main (DAC-feature)
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "GitHub Actions"
-
+          
+          # Stage all untracked files
+          git add -A
           
           # Commit the changes
           git commit -m "feat: pull detection rule from elastic"
