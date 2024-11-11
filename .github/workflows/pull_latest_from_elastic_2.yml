@@ -34,7 +34,7 @@ jobs:
           git config --global user.name "zsohamwag"
           git config --global user.email "zsoham.wag@orangeworking.com"
           # Use the token to push to the repository
-          git checkout -b ${{ github.ref_name }}
+          git checkout ${{ github.ref_name }}
           
       - name: Set up Python 3.12
         uses: actions/setup-python@v4
