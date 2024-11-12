@@ -27,7 +27,7 @@ on:
 
 jobs:
   sync-to-production:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
 
@@ -43,21 +43,13 @@ jobs:
     - name: Install Dependencies in Virtual Environment
       run: |
         python3 -m venv venv
-        if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
-          source venv/bin/activate
-        elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-          .\venv\Scripts\Activate.ps1
-        fi
+        source venv/bin/activate
         python -m pip install --upgrade pip
         pip install .[dev]
 
     - name: Import Rules to Kibana
       run: |
-        if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
-          source venv/bin/activate
-        elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-          .\venv\Scripts\Activate.ps1
-        fi
+        source venv/bin/activate
         FLAGS=""
         if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$INPUT_OVERWRITE" = "true" ]; then
           FLAGS+=" --overwrite"
