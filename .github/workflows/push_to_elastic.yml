@@ -35,19 +35,21 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.12
+    - name: Set up Python 3.11
       uses: actions/setup-python@v2
       with:
-        python-version: '3.12'
+        python-version: '3.11'
 
-    - name: Install Dependencies
+    - name: Install Dependencies in Virtual Environment
       run: |
-        python3 -m pip install --upgrade pip
-        pip cache purge
+        python3 -m venv venv
+        source venv/bin/activate
+        python -m pip install --upgrade pip
         pip install .[dev]
-
+      
     - name: Import Rules to Kibana
       run: |
+        source venv/bin/activate
         FLAGS=""
         if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$INPUT_OVERWRITE" = "true" ]; then
           FLAGS+=" --overwrite"
@@ -58,10 +60,8 @@ jobs:
         if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$INPUT_OVERWRITE_ACTION_CONNECTORS" = "true" ]; then
           FLAGS+=" --overwrite-action-connectors"
         fi
-
         SPACE="${INPUT_SPACE:-Default}"
         SPACE_FLAG="--space $SPACE"
-
         echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS"
         python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS
       env:
