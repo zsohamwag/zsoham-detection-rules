@@ -23,8 +23,7 @@ jobs:
 
     steps:
       - name: Verify current branch
-        run: |   
-          echo "Current branch: $(git branch --show-current)"
+        run: echo "Current branch: $(git branch --show-current)"
 
       - name: Configure Git
         env:
@@ -39,12 +38,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Pip and Upgrade
+      - name: Check Python and Pip Installation
         run: |
-          python -m ensurepip --upgrade || sudo apt-get install python3-pip -y
+          python --version
+          python -m ensurepip --upgrade  # Ensures pip is installed/upgraded
           python -m pip install --upgrade pip
 
-      - name: Install Dependencies
+      - name: Install Dependencies on Runner
         run: |
           python -m pip cache purge
           python -m pip install .[dev]
@@ -61,6 +61,12 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Change Directory and List Files
+        run: |
+          pwd
+          ls -l
+          cd ${{ env.CUSTOM_RULES_DIR }}
+          
       - name: Export Rules from Elastic Security and Import to TOML
         if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'true' }}
         run: |

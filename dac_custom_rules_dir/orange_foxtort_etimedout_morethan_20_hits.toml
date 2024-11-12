@@ -1,0 +1,63 @@
+[metadata]
+creation_date = "2024/11/11"
+maturity = "production"
+updated_date = "2024/11/11"
+
+[rule]
+actions = []
+author = []
+data_view_id = "478e5fee-227d-4979-a627-132a4e24af8d"
+description = "ORANGE-FOXTORT-ETIMEDOUT-MORETHAN-20-HITS"
+enabled = true
+exceptions_list = []
+false_positives = []
+filters = []
+from = "now-660s"
+interval = "1m"
+language = "kuery"
+license = ""
+max_signals = 100
+name = "ORANGE-FOXTORT-ETIMEDOUT-MORETHAN-20-HITS"
+references = []
+related_integrations = []
+required_fields = []
+revision = 0
+risk_score = 99
+risk_score_mapping = []
+rule_id = "61bab39f-65f6-4437-aeb2-48148c422a97"
+setup = ""
+severity = "critical"
+severity_mapping = []
+tags = []
+threat = []
+to = "now"
+type = "threshold"
+version = 1
+
+query = '''
+message : ETIMEDOUT
+'''
+
+
+
+[rule.investigation_fields]
+field_names = [
+    "kubernetes.namespace",
+    "orchestrator.cluster.name",
+    "kubernetes.node.labels.beta_kubernetes_io/instance-type",
+    "kubernetes.container.name",
+]
+
+[rule.meta]
+from = "10m"
+kibana_siem_app_url = "https://ccs-centralize.kb.ap-southeast-1.aws.found.io:9243/app/security"
+
+[rule.threshold]
+cardinality = []
+field = [
+    "kubernetes.container.name",
+    "kubernetes.namespace",
+    "kubernetes.node.labels.karpenter_sh/capacity-type",
+]
+value = 200
+
