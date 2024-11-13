@@ -17,7 +17,7 @@ on:
         required: false
         default: 'true'
       overwrite_action_connectors:
-        description: 'Overwrite existing action connectors'
+        description: 'Overwrite existing action connectorss'
         required: false
         default: 'true'
       space:
