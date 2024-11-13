@@ -1,7 +1,7 @@
 [metadata]
-creation_date = "2024/11/11"
+creation_date = "2024/11/13"
 maturity = "production"
-updated_date = "2024/11/11"
+updated_date = "2024/11/13"
 
 [rule]
 actions = []
@@ -34,7 +34,7 @@ required_fields = []
 revision = 0
 risk_score = 21
 risk_score_mapping = []
-rule_id = "b60c83f0-f1bf-40cd-9922-dbfe63d2d9b7"
+rule_id = "b60c83f0-f1bf-40cd-9922-dbfe63d2d9b9"
 setup = ""
 severity = "low"
 severity_mapping = []
