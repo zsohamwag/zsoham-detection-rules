@@ -17,7 +17,7 @@ on:
         required: false
         default: 'true'
       overwrite_action_connectors:
-        description: 'Overwrite existing action connectorss'
+        description: 'Overwrite existing action connectors'
         required: false
         default: 'true'
       space:
@@ -47,6 +47,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[dev]
 
+    - name: Update Detection Rules CLI
+      run: |
+        source venv/bin/activate
+        python -m pip install --upgrade detection-rules
+
+    - name: List Available Detection Rules
+      run: |
+        source venv/bin/activate
+        echo "Listing all detection rules:"
+        python3 -m detection_rules list
+
     - name: Import Rules to Kibana
       run: |
         source venv/bin/activate
@@ -62,9 +73,17 @@ jobs:
         fi
         SPACE="${INPUT_SPACE:-Default}"
         SPACE_FLAG="--space $SPACE"
-        echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS"
-        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS
+        
+        # Debugging steps
+        echo "Custom rules directory: $CUSTOM_RULES_DIR"
+        ls $CUSTOM_RULES_DIR  # Check if rules are visible in the directory
+        echo "Listing available rules:"
+        python3 -m detection_rules list  # Verify that rules are detected by the CLI
+
+        echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-directory $CUSTOM_RULES_DIR"
+        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-directory $CUSTOM_RULES_DIR --force
       env:
         DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
+        CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
