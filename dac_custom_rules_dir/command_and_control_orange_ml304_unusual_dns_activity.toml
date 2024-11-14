@@ -7,11 +7,10 @@ updated_date = "2024/11/13"
 anomaly_threshold = 50
 author = ["Elastic"]
 description = """
-A machine learning job detected a rare and unusual DNS query that indicate network activity with unusual DNS domains.
+A machine learning job detected a rare and unusual DNS query indicating network activity with unusual DNS domains.
 This can be due to initial access, persistence, command-and-control, or exfiltration activity. For example, when a user
 clicks on a link in a phishing email or opens a malicious document, a request may be sent to download and run a payload
-from an uncommon domain. When malware is already running, it may send requests to an uncommon DNS domain the malware
-uses for command-and-control communication.
+from an uncommon domain. When malware is already running, it may send requests to an uncommon DNS domain for command-and-control communication.
 """
 enabled = true
 exceptions_list = []
@@ -21,7 +20,7 @@ false_positives = [
     alert. Network activity that occurs rarely, in small quantities, can trigger this alert. Possible examples are
     browsing technical support or vendor networks sparsely. A user who visits a new or unique web destination may
     trigger this alert.
-    """,
+    """
 ]
 from = "now-2700s"
 interval = "15m"
@@ -43,6 +42,7 @@ tags = ["Elastic", "Network", "Threat Detection", "ML", "Machine Learning", "Com
 to = "now"
 type = "machine_learning"
 version = 102
+
 [[rule.actions]]
 action_type_id = ".webhook"
 group = "default"
@@ -52,21 +52,22 @@ uuid = "61b955d8-2a6b-443e-8904-5beb86b17a14"
 [rule.actions.frequency]
 notifyWhen = "onActiveAlert"
 summary = true
+
 [rule.actions.params]
-body = '{ "text" : "{{rule.name}} {{context.rule.description}}{{context.alerts}} " }
-'
+body = '{ "text" : "{{rule.name}} {{context.rule.description}}{{context.alerts}} " }'
+
 [[rule.threat]]
 framework = "MITRE ATT&CK"
+
 [[rule.threat.technique]]
 id = "T1071"
 name = "Application Layer Protocol"
 reference = "https://attack.mitre.org/techniques/T1071/"
+
 [[rule.threat.technique.subtechnique]]
 id = "T1071.004"
 name = "DNS"
 reference = "https://attack.mitre.org/techniques/T1071/004/"
-
-
 
 [rule.threat.tactic]
 id = "TA0011"
@@ -76,4 +77,3 @@ reference = "https://attack.mitre.org/tactics/TA0011/"
 [rule.meta]
 from = "30m"
 kibana_siem_app_url = ""
-
