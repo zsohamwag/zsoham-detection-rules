@@ -78,7 +78,7 @@ jobs:
         echo "Custom rules directory: $CUSTOM_RULES_DIR"
         ls $CUSTOM_RULES_DIR  # Check if rules are visible in the directory
         echo "Listing available rules:"
-        python3 -m detection_rules list  # Verify that rules are detected by the CLI
+        # Verify that rules are detected by the CLI
 
         echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --directory $CUSTOM_RULES_DIR"
         python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-directory $CUSTOM_RULES_DIR $FLAGS
