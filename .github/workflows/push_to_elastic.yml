@@ -72,8 +72,8 @@ jobs:
         echo "Custom rules directory: $CUSTOM_RULES_DIR"
         ls $CUSTOM_RULES_DIR  # Check if rules are visible in the directory
 
-        echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-directory $CUSTOM_RULES_DIR"
-        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-directory $CUSTOM_RULES_DIR --force
+        echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --directory $CUSTOM_RULES_DIR"
+        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --directory $CUSTOM_RULES_DIR --force
       env:
         DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
