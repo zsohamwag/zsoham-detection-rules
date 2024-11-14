@@ -17,7 +17,7 @@ on:
         required: false
         default: 'true'
       overwrite_action_connectors:
-        description: 'Overwrite existing action connectorss'
+        description: 'Overwrite existing action connectors'
         required: false
         default: 'true'
       space:
@@ -46,6 +46,17 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install .[dev]
+
+    - name: Update Detection Rules CLI
+      run: |
+        source venv/bin/activate
+        python -m pip install --upgrade detection-rules
+
+    - name: List Available Detection Rules
+      run: |
+        source venv/bin/activate
+        echo "Listing all detection rules:"
+        python3 -m detection_rules list
 
     - name: Import Rules to Kibana
       run: |
