@@ -80,7 +80,7 @@ jobs:
         
 
         echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --directory $CUSTOM_RULES_DIR"
-        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-directory $CUSTOM_RULES_DIR $FLAGS
+        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --directory $CUSTOM_RULES_DIR $FLAGS
       env:
         DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
