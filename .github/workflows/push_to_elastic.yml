@@ -47,11 +47,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[dev]
 
-    - name: Update Detection Rules CLI
-      run: |
-        source venv/bin/activate
-        python -m pip install --upgrade detection-rules
-
     - name: Import Rules to Kibana
       run: |
         source venv/bin/activate
@@ -67,15 +62,9 @@ jobs:
         fi
         SPACE="${INPUT_SPACE:-Default}"
         SPACE_FLAG="--space $SPACE"
-        
-        # Debugging steps
-        echo "Custom rules directory: $CUSTOM_RULES_DIR"
-        ls $CUSTOM_RULES_DIR  # Check if rules are visible in the directory
-
-        echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --directory $CUSTOM_RULES_DIR"
-        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --directory $CUSTOM_RULES_DIR 
+        echo "Running command: python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS"
+        python3 -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS
       env:
         DR_CLOUD_ID: ${{ secrets.CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.KIBANA_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
-        CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
