@@ -25,7 +25,7 @@ interval = "10m"
 language = "kuery"
 license = "Elastic License v2"
 max_signals = 100
-name = "DEMO1"
+name = "AWS VPC Flow Logs Deletion [Duplicate]"
 note = """## Triage and analysis
 
 ### Investigating AWS VPC Flow Logs Deletion
@@ -78,7 +78,7 @@ required_fields = []
 revision = 0
 risk_score = 73
 risk_score_mapping = []
-rule_id = "984946ef-76ec-447a-9599-a2868fea2d85"
+rule_id = "984946ef-76ec-447a-9599-a2868fea2d70"
 setup = ""
 severity = "high"
 severity_mapping = []
